@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, addDoc, doc, setDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
-const preferencesList = [
+const initialPreferences = [
   "Accessibility", "Active Lifestyle", "Affordability", "Casual", "Cleanliness", 
   "Community", "Convenient", "Cultural", "Entertainment", "Family Friendly", 
   "Fine Dining", "Green Spaces", "Healthy", "Quiet", "Safety", "Shopping"
@@ -14,6 +14,7 @@ const preferencesList = [
 
 const TravelProfile = () => {
   const [selectedPreferences, setSelectedPreferences] = useState([]);
+  const [preferencesList, setPreferencesList] = useState(initialPreferences);  // Move preferences to state
   const [newPreference, setNewPreference] = useState('');
   const navigate = useNavigate();
 
@@ -26,8 +27,14 @@ const TravelProfile = () => {
   };
 
   const handleAddPreference = () => {
-    if (newPreference && !selectedPreferences.includes(newPreference)) {
+    if (newPreference && !preferencesList.includes(newPreference)) {
+      // Add the new preference to the list and allow it to be selectable
+      setPreferencesList([...preferencesList, newPreference]);
+
+      // Automatically select the new preference after it's added
       setSelectedPreferences([...selectedPreferences, newPreference]);
+
+      // Clear the input field
       setNewPreference('');
     }
   };
