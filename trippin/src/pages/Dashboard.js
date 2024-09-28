@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Grid, Card, CardContent, Button, Container } from '@mui/material';
-import { Box } from '@mui/system';
+import { Typography, Card, CardContent, Container, Box, Avatar, List, ListItem, ListItemText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs } from 'firebase/firestore'; // Firestore imports
-import { db, auth } from './firebase'; // Firebase Auth and Firestore
-import { onAuthStateChanged } from 'firebase/auth'; // Firebase Auth state listener
+import Slider from 'react-slick'; // Import react-slick
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db, auth } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
+import 'slick-carousel/slick/slick.css'; // Slick Carousel CSS
+import 'slick-carousel/slick/slick-theme.css';
 
 export default function Dashboard() {
   const navigate = useNavigate(); // Initialize useNavigate
   const [trips, setTrips] = useState([]); // State to store fetched trips
   const [userEmail, setUserEmail] = useState(''); // State to store the authenticated user's email
-
-  // Function to handle navigation to the "Create Trip" page
-  const handleCreateTrip = () => {
-    navigate('/createTrip1'); // Navigate to the create-trip route
-  };
 
   // Fetch trips where the user is invited or the creator
   useEffect(() => {
@@ -41,7 +39,7 @@ export default function Dashboard() {
           ...doc.data(),
         }));
 
-        // Combine both queries' results and remove any duplicates (if any trip is both created and invited)
+        // Combine both queries' results and remove any duplicates
         const allTrips = [...invitedTripsData, ...createdTripsData];
         const uniqueTrips = allTrips.reduce((acc, trip) => {
           if (!acc.some((t) => t.id === trip.id)) {
@@ -50,55 +48,97 @@ export default function Dashboard() {
           return acc;
         }, []);
 
-        // Set the combined unique trips to state
-        setTrips(uniqueTrips);
+        setTrips(uniqueTrips); // Set the combined unique trips to state
       }
     });
 
-    // Clean up the listener when the component unmounts
     return () => unsubscribe();
   }, []);
 
+  // Slick carousel settings
+  const settings = {
+    dots: true,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
+
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="auto">
       <Box sx={{ textAlign: 'center', marginTop: 4, marginBottom: 4 }}>
-        <Typography variant="h4" sx={{ color: '#84e3f3' }}>
+        <Typography variant="h4" sx={{ color: '#000000' }}>
           Your Saved Trips
         </Typography>
       </Box>
 
-      {/* Grid layout for trip cards */}
-      <Grid container spacing={3} justifyContent="center">
-        {/* Loop through fetched trips and display them */}
+      {/* Carousel layout for trip cards */}
+      <Slider {...settings}>
         {trips.map((trip) => (
-          <Grid item xs={12} sm={6} md={4} key={trip.id}>
-            <Card sx={{ backgroundColor: '#c5f5fc' }}>
-              <CardContent>
-                <Typography variant="h6">{trip.tripName}</Typography>
-                <Typography variant="body2">{trip.tripArea || 'No description provided'}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+          <Card
+            key={trip.id}
+            sx={{
+              margin: '20px 50px', // Adjust margins here
+              backgroundColor: '#fff',
+              borderRadius: '8px',
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <CardContent>
+              {/* Image section can be customized */}
+              <Typography variant="h6" sx={{ marginTop: 2 }}>
+                {trip.tripName}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {trip.tripArea || 'No description provided'}
+              </Typography>
 
-      {/* Create New Trip Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: '#84e3f3',
-            color: '#ffffff',
-            padding: '10px 20px',
-            '&:hover': {
-              backgroundColor: '#6ccedf',
-            },
-          }}
-          onClick={handleCreateTrip}
-        >
-          Create New Trip
-        </Button>
-      </Box>
+              {/* Display List of Invitees */}
+              <Typography variant="subtitle1" sx={{ marginTop: 2 }}>
+                Invited Users:
+              </Typography>
+              <List dense>
+                {trip.inviteEmails && trip.inviteEmails.length > 0 ? (
+                  trip.inviteEmails.map((email, index) => (
+                    <ListItem key={index}>
+                      <ListItemText primary={email} />
+                    </ListItem>
+                  ))
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    No invitees for this trip.
+                  </Typography>
+                )}
+              </List>
+
+              {/* Avatar and User Info */}
+              <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>
+                <Avatar alt={trip.createdBy} src="/static/images/avatar/1.jpg" sx={{ marginRight: 1 }} />
+                <Box>
+                  <Typography variant="body2">{trip.createdBy}</Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    Created on {new Date().toLocaleDateString()}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        ))}
+      </Slider>
     </Container>
   );
 }
