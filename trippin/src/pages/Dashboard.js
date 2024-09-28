@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Card, CardContent, Container, Box, Avatar, List, ListItem, ListItemText } from '@mui/material';
+import { Typography, Card, CardContent, Container, Box, Avatar, List, ListItem, ListItemText, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Slider from 'react-slick'; // Import react-slick
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -78,6 +78,11 @@ export default function Dashboard() {
     ],
   };
 
+  // Function to handle the navigation to the create trip page
+  const handleCreateTrip = () => {
+    navigate('/createTrip1'); // Navigate to the Create Trip page
+  };
+
   return (
     <Container maxWidth="auto">
       <Box sx={{ textAlign: 'center', marginTop: 4, marginBottom: 4 }}>
@@ -99,7 +104,6 @@ export default function Dashboard() {
             }}
           >
             <CardContent>
-              {/* Image section can be customized */}
               <Typography variant="h6" sx={{ marginTop: 2 }}>
                 {trip.tripName}
               </Typography>
@@ -139,6 +143,24 @@ export default function Dashboard() {
           </Card>
         ))}
       </Slider>
+
+      {/* Create New Trip Button */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: '#000000',
+            color: '#ffffff',
+            padding: '10px 20px',
+            '&:hover': {
+              backgroundColor: '#6ccedf',
+            },
+          }}
+          onClick={handleCreateTrip} // Call the function to navigate
+        >
+          Create New Trip
+        </Button>
+      </Box>
     </Container>
   );
 }

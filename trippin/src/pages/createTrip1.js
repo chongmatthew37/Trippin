@@ -1,4 +1,3 @@
-// src/pages/CreateTrip.js
 import React, { useState, useEffect } from 'react';
 import './createTrip1.css';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // Import Firestore methods
