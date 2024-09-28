@@ -14,7 +14,7 @@
 /* Reduce gap under the logo */
 .form-title {
   position: absolute;
-  top: 150px;
+  top: 100px;
   left: 50px;
   margin-bottom: 20px; /* Adjust margin below the title/logo */
   font-size: 28px;
@@ -62,8 +62,8 @@
 /* Flex container for email input and add button */
 .email-input-wrapper {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 15px;
   width: 100%;
 }
 
