@@ -1,8 +1,16 @@
 import React from 'react';
 import { Typography, Grid, Card, CardContent, Button, Container } from '@mui/material';
 import { Box } from '@mui/system';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
+  const navigate = useNavigate(); // Initialize useNavigate
+
+  // Function to handle the navigation
+  const handleCreateTrip = () => {
+    navigate('/createTrip1'); // Navigate to the create-trip route
+  };
+
   return (
     <Container maxWidth="md">
       <Box sx={{ textAlign: 'center', marginTop: 4, marginBottom: 4 }}>
@@ -42,6 +50,7 @@ export default function Dashboard() {
               backgroundColor: '#6ccedf',
             },
           }}
+          onClick={handleCreateTrip} // Call the function to navigate
         >
           Create New Trip
         </Button>
