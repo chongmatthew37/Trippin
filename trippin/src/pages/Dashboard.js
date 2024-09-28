@@ -205,7 +205,7 @@ export default function Dashboard() {
                     onClick={() => navigate('/itinerary')}
                     // Disable the button if not all invitees have completed the form
                   >
-                    Blend
+                    Let's Trip!
                   </Button>
                 </>
               )}
@@ -230,11 +230,10 @@ export default function Dashboard() {
         <Button
           variant="contained"
           sx={{
-            backgroundColor: '#000000',
-            color: '#ffffff',
+            backgroundColor: '#8bdfe9',
             padding: '10px 20px',
             '&:hover': {
-              backgroundColor: '#6ccedf',
+              backgroundColor: '#78c8d2',
             },
           }}
           onClick={() => navigate('/createTrip1')}

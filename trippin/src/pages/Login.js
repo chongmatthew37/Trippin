@@ -49,7 +49,7 @@ function Login() {
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       {
         <div>
-          <h2>Sign in with Google!</h2>
+          <h2 style={{ color: '#0e395a' }}>Sign in with Google</h2>
           <button className="login-with-google-btn" onClick={handleLogin}>Sign in with Google</button>
         </div>}
     </div>

@@ -67,17 +67,23 @@ const TravelProfile = () => {
 
   return (
     <div>
-      <h1>Create Your Travel Profile</h1>
+      <h1 style={{ color: '#0e395a' }}>Create Your Travel Profile</h1>
+      <p style={{ fontSize: '14px', color: '#696969', marginTop: '-10px', marginBottom: '20px' }}>
+      We use these travel preferences to help identify the best places for you to visit. Please select at least 3.
+    </p>
       <Grid container spacing={2}>
         {preferencesList.map((preference, idx) => (
           <Grid item xs={6} sm={4} key={idx}>
             <Card onClick={() => handleSelect(preference)} style={{
-              backgroundColor: selectedPreferences.includes(preference) ? '#84e3f3' : '#ffffff',
+              backgroundColor: selectedPreferences.includes(preference) ? '#b3f0f8' : '#ffffff',
               cursor: 'pointer',
-              border: selectedPreferences.includes(preference) ? '2px solid blue' : '1px solid gray'
+              border: selectedPreferences.includes(preference) ? '1.5px solid #0e395a' : '1px solid gray',
+              padding: '6px' // Reduce padding further
             }}>
-              <CardContent>
-                <h3>{preference}</h3>
+              <CardContent style={{ padding: '6px' }}> {/* Reduce padding here */}
+              <h3 style={{ fontSize: '14px', margin: '0', color: '#0e395a' }}>
+                {preference}
+              </h3>
               </CardContent>
             </Card>
           </Grid>
