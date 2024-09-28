@@ -13,7 +13,7 @@ import Itinerary from './pages/Itinerary';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/Trippin">
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
