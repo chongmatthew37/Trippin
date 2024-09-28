@@ -103,6 +103,7 @@ function CreateTrip() {
             required
           />
         </div>
+        
 
         {/* Trip Area */}
         <div className="form-group">

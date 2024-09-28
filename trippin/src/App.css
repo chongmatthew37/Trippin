@@ -1,3 +1,13 @@
+@import url('https://fonts.cdnfonts.com/css/metropolis-2');
+* {
+  font-family: "Metropolis", sans-serif;
+}
+
+body {
+  color: #0e395a;
+}
+
+
 /* App.css */
 .App {
   text-align: center;
@@ -8,15 +18,23 @@
 
 .App-logo {
   height: 15vmin;
+  margin-bottom: -25px
+}
+
+.App-text-logo {
+  height: 9vmin; /* Reduce the height (for example, from 10vmin to 8vmin) */
+  max-height: 60px; /* Optional: Set a max height to avoid it becoming too large on larger screens */
+  margin-left: 5px; /* Add spacing between the main logo and the text logo */
+  margin-bottom: -30px
 }
 
 .App-header {
-  background-color: #e8d8c3;
+  background-color: #fff3e3;
   height: auto; /* Set a fixed height for the header */
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 20px;
+  padding: 10px;
   font-size: calc(10px + 2vmin);
   color: white;
 }
@@ -26,7 +44,7 @@
   display: flex; /* Flexbox to center content */
   justify-content: center; /* Center content horizontally */
   align-items: top; /* Center content vertically */
-  background-color: #e8d8c3;
+  background-color: #fff3e3;
   padding: 20px;
   color: black;
   text-align: center; /* Center the text */

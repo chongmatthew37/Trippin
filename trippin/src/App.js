@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import logo from './trippinlogo.png';
+import textLogo from './trippinTextLogo.png';
 import './App.css';
 import Login from './pages/Login'; // Make sure path to Login is correct
 import TravelProfile from './pages/TravelProfile';
@@ -17,6 +18,7 @@ function App() {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
+          <img src={textLogo} className="App-text-logo" alt="Trippin" />
         </header>
         <div className="App-body">
           <Routes>

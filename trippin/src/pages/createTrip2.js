@@ -290,20 +290,27 @@ const CreateTrip2 = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 4 }}>
         <Button
           variant="contained"
-          color="primary"
           onClick={() => navigate('/createTrip1')}
+          sx={{ 
+            backgroundColor: '#4dacd1', 
+            '&:hover': { backgroundColor: '#4293a9' } // Darker shade on hover
+          }}
         >
           Back
         </Button>
         <Button
           variant="contained"
-          color="primary"
           onClick={savePreferences}
           disabled={loading}
+          sx={{ 
+            backgroundColor: '#4dacd1', 
+            '&:hover': { backgroundColor: '#4293a9' } // Darker shade on hover
+          }}
         >
           {loading ? 'Saving...' : 'Finish'}
         </Button>
       </Box>
+
     </Container>
   );
 };
