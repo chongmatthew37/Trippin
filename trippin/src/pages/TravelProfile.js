@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button, Card, CardContent, Grid, TextField } from '@mui/material';
 import { db } from "./firebase"
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, doc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const initialPreferences = [

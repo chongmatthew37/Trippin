@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db } from './firebase'; // Import your Firebase configuration
-import { collection, addDoc, doc, setDoc} from 'firebase/firestore';
+import { doc, setDoc} from 'firebase/firestore';
 import './TravelProfile2.css'; // Import the CSS file here
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth";
