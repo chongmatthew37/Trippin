@@ -120,7 +120,7 @@ function CreateTrip() {
 
         {/* Address Field */}
         <div className="form-group">
-          <label htmlFor="address">Address</label>
+          <label htmlFor="address">Lodging Address</label>
           <input
             type="text"
             id="address"
