@@ -9,6 +9,7 @@ import TravelProfile2 from './pages/TravelProfile2';
 import Dashboard from './pages/Dashboard';
 import CreateTrip1 from './pages/createTrip1';
 import CreateTrip2 from './pages/createTrip2';
+import Itinerary from './pages/Itinerary';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/Dashboard" element={<Dashboard />} />
             <Route path="/createTrip1" element={<CreateTrip1 />} />
             <Route path="/createTrip2" element={<CreateTrip2 />} />
+            <Route path="/itinerary" element={<Itinerary />} />
           </Routes>
         </div>
       </div>
