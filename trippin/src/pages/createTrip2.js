@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Typography,
-  Grid,
-  Checkbox,
-  Slider,
-  Box,
-  Container,
-  Paper,
-  Button,
-} from '@mui/material';
+import { Typography, Grid, Checkbox, Slider, Box, Container, Paper, Button } from '@mui/material';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore'; // Firestore methods to fetch data
-import { db } from './firebase'; // Import Firestore config
+import { doc, setDoc, getDoc } from 'firebase/firestore'; // Firestore methods to fetch and update data
+import { auth, db } from './firebase'; // Import Firestore config and auth
 
 const mapStyles = {
   height: '300px',
@@ -20,7 +11,7 @@ const mapStyles = {
 };
 
 const initialCenter = {
-  lat: 48.8584, // Default to Eiffel Tower
+  lat: 48.8584, // Default to Eiffel Tower initially
   lng: 2.2945,
 };
 
@@ -32,8 +23,8 @@ const transportationMethods = [
   { name: 'train', maxDistance: 100 },
 ];
 
-const DashboardPage = () => {
-  const [center, setCenter] = useState(initialCenter); // State for map center
+const CreateTrip2 = () => {
+  const [center, setCenter] = useState(initialCenter); // State for map center, defaults to Eiffel Tower
   const [markerPosition, setMarkerPosition] = useState(initialCenter); // State for marker position
   const [checked, setChecked] = useState({
     walking: false,
@@ -49,40 +40,58 @@ const DashboardPage = () => {
     bus: 0,
     train: 0,
   });
+  const [loading, setLoading] = useState(false); // Loading state for button
+  const [tripData, setTripData] = useState(null); // State to store trip data from Firestore
 
-  const location = useLocation(); // Use location to get tripId passed from another page
-  const { address } = location.state || {}; // Extract tripId from location state
+  const location = useLocation();
+  const { tripId, address: initialAddress } = location.state || {}; // Extract tripId and address from location state
   const navigate = useNavigate();
 
-  // Load the Google Maps API
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: 'AIzaSyAaKr-fzmU_al-JZInXlxH2c3XJZghcvds',
   });
 
   // Geocode the address to get the lat/lng
   const handleGeocodeAddress = (address) => {
-    if (!isLoaded) {
-      //alert('Google Maps API is not loaded yet!');
-      return;
-    }
+    if (!isLoaded) return;
 
-    const geocoder = new window.google.maps.Geocoder(); // Create a new Geocoder instance
+    const geocoder = new window.google.maps.Geocoder();
     geocoder.geocode({ address }, (results, status) => {
       if (status === 'OK') {
         const location = results[0].geometry.location;
-        setCenter({ lat: location.lat(), lng: location.lng() }); // Update the map center with geocoded lat/lng
-        setMarkerPosition({ lat: location.lat(), lng: location.lng() }); // Update the marker position with geocoded lat/lng
+        setCenter({ lat: location.lat(), lng: location.lng() });
+        setMarkerPosition({ lat: location.lat(), lng: location.lng() });
       } else {
         alert('Geocode was not successful for the following reason: ' + status);
       }
     });
   };
 
+  // Fetch trip details (like address) from Firestore using tripId
   useEffect(() => {
-    if (address) {
-      handleGeocodeAddress(address); // Call geocode with the provided address when component mounts
+    const fetchTripData = async () => {
+      if (tripId) {
+        const tripDoc = await getDoc(doc(db, 'trips', tripId));
+        if (tripDoc.exists()) {
+          const trip = tripDoc.data();
+          setTripData(trip);
+
+          // Use the trip's address from Firestore or the initial address from state
+          const destinationAddress = trip.address || initialAddress;
+          if (destinationAddress) {
+            handleGeocodeAddress(destinationAddress); // Geocode and update map
+          }
+        }
+      }
+    };
+
+    // If the initial address is available from state, use it before fetching trip data
+    if (initialAddress) {
+      handleGeocodeAddress(initialAddress);
     }
-  }, [address, isLoaded]); 
+
+    fetchTripData();
+  }, [tripId, initialAddress, isLoaded]);
 
   // Handle transportation method selection (checkboxes)
   const handleCheckboxChange = (method) => {
@@ -92,6 +101,42 @@ const DashboardPage = () => {
   // Handle distance sliders
   const handleSliderChange = (method, value) => {
     setDistances((prev) => ({ ...prev, [method]: value }));
+  };
+
+  const savePreferences = async () => {
+    try {
+      setLoading(true); // Start loading
+      console.log('Saving preferences...'); // Debugging log
+      const user = auth.currentUser; // Get the current logged-in user
+      if (user && tripId) {
+        console.log('User is authenticated:', user.email); // Debugging log
+        const preferences = {
+          preferredTransportation: checked,
+          distances: distances,
+          formComplete: true, // Mark the form as complete
+        };
+  
+        // Reference to the user's preferences document in the subcollection
+        const preferencesDocRef = doc(db, 'trips', tripId, 'userPreferences', user.email);
+  
+        // Save the user's preferences in the "userPreferences" subcollection
+        await setDoc(preferencesDocRef, preferences, { merge: true });
+  
+        console.log('Preferences saved successfully!'); // Debugging log
+        setLoading(false); // End loading
+        alert('Preferences saved successfully!');
+  
+        // Navigate to the dashboard after saving the preferences
+        navigate('/dashboard');
+      } else {
+        console.error('User is not authenticated or tripId is missing.');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      alert('There was an error saving your preferences. Please try again.');
+      setLoading(false); // End loading in case of error
+    }
   };
 
   if (!isLoaded) {
@@ -105,7 +150,7 @@ const DashboardPage = () => {
       </Typography>
 
       <Typography variant="h6" align="center" sx={{ marginY: 2 }}>
-        Destination: {address}
+        Destination: {initialAddress || tripData?.address || 'Loading...'}
       </Typography>
 
       <Grid container spacing={2}>
@@ -132,7 +177,7 @@ const DashboardPage = () => {
                 <Slider
                   value={distances[method.name]}
                   min={0}
-                  max={method.maxDistance} // Set the max distance here
+                  max={method.maxDistance}
                   step={0.1}
                   valueLabelDisplay="auto"
                   onChange={(e, value) => handleSliderChange(method.name, value)}
@@ -153,7 +198,7 @@ const DashboardPage = () => {
             <GoogleMap
               mapContainerStyle={mapStyles}
               zoom={14}
-              center={center} // Center the map based on the 'center' state
+              center={center}
             >
               {markerPosition && <Marker position={markerPosition} />} {/* Display marker */}
             </GoogleMap>
@@ -165,12 +210,17 @@ const DashboardPage = () => {
         <Button variant="contained" color="primary" onClick={() => navigate('/createTrip1')}>
           Back
         </Button>
-        <Button variant="contained" color="primary" onClick={() => navigate('/dashboard')}>
-          Next
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={savePreferences} 
+          disabled={loading} // Disable button when loading
+        >
+          {loading ? 'Saving...' : 'Next'} {/* Show "Saving..." when saving */}
         </Button>
       </Box>
     </Container>
   );
 };
 
-export default DashboardPage;
+export default CreateTrip2;
