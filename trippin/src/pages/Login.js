@@ -1,5 +1,6 @@
 // src/pages/Login.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { signInWithPopup, signOut, auth, provider } from './firebase'; // Import from firebase.js
 // src/pages/Login.js
 import './Login.css';
@@ -7,12 +8,14 @@ import './Login.css';
 
 function Login() {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   // Google Sign-In Handler
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
+      navigate('/TravelProfile');
     } catch (error) {
       console.error('Error during sign-in:', error);
     }
