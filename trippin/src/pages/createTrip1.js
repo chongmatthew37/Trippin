@@ -4,6 +4,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // Imp
 import { db, auth } from './firebase'; // Import Firestore and Auth instances from Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Import Auth state change listener
 import { useNavigate } from 'react-router-dom';
+import DatePicker from 'react-datepicker'; // Import DatePicker component
+import 'react-datepicker/dist/react-datepicker.css'; // Import DatePicker CSS
 
 function CreateTrip() {
   const [tripName, setTripName] = useState('');
@@ -12,6 +14,9 @@ function CreateTrip() {
   const [emailInput, setEmailInput] = useState(''); // Current input value for email
   const [errorMessage, setErrorMessage] = useState(''); // Error message for invalid email
   const [userEmail, setUserEmail] = useState(''); // State to store the authenticated user's email
+  const [startDate, setStartDate] = useState(null); // Start date state
+  const [endDate, setEndDate] = useState(null); // End date state
+  const [address, setAddress] = useState(''); // New state for address
   const navigate = useNavigate();
 
   // Handle adding a new email to the invite list
@@ -63,6 +68,9 @@ function CreateTrip() {
         tripName,
         tripArea,
         inviteEmails,
+        startDate: startDate?.toISOString() || null, // Store start date in ISO format
+        endDate: endDate?.toISOString() || null, // Store end date in ISO format
+        address, // Include address in the Firestore document
         createdBy: userEmail, // Use the authenticated user's email
         createdAt: serverTimestamp(), // Use server timestamp for creation date
       });
@@ -104,6 +112,42 @@ function CreateTrip() {
           />
         </div>
 
+        {/* Address Field */}
+        <div className="form-group">
+          <label htmlFor="address">Address</label>
+          <input
+            type="text"
+            id="address"
+            className="form-control"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Enter trip address"
+            required
+          />
+        </div>
+
+        {/* Start Date Picker */}
+        <div className="form-group">
+          <label>Start Date</label>
+          <DatePicker
+            selected={startDate}
+            onChange={(date) => setStartDate(date)}
+            className="form-control"
+            placeholderText="Select a start date"
+          />
+        </div>
+
+        {/* End Date Picker */}
+        <div className="form-group">
+          <label>End Date</label>
+          <DatePicker
+            selected={endDate}
+            onChange={(date) => setEndDate(date)}
+            className="form-control"
+            placeholderText="Select an end date"
+          />
+        </div>
+
         {/* Invite Emails */}
         <div className="form-group">
           <label>Invite Emails</label>
@@ -115,7 +159,7 @@ function CreateTrip() {
               onChange={handleEmailChange}
               placeholder="Enter Gmail Invites"
             />
-            <button type="button" className="submit-btn" onClick={handleAddEmail}>
+            <button type="button" className="add-email-btn" onClick={handleAddEmail}>
               Add
             </button>
           </div>         
