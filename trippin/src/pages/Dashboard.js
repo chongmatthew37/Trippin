@@ -201,7 +201,9 @@ export default function Dashboard() {
                   <Button
                     variant="contained"
                     sx={{ marginTop: 2 }}
-                    disabled={!allInviteesCompleted(trip.id)} // Disable the button if not all invitees have completed the form
+                    disabled={!allInviteesCompleted(trip.id)}
+                    onClick={() => navigate('/itinerary')}
+                    // Disable the button if not all invitees have completed the form
                   >
                     Blend
                   </Button>
