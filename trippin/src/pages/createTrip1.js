@@ -1,6 +1,9 @@
 // src/pages/CreateTrip.js
-import React, { useState } from 'react';
-import './createTrip1.css'; // Assuming you have a CSS file for styling
+import React, { useState, useEffect } from 'react';
+import './createTrip1.css';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // Import Firestore methods
+import { db, auth } from './firebase'; // Import Firestore and Auth instances from Firebase
+import { onAuthStateChanged } from 'firebase/auth'; // Import Auth state change listener
 
 function CreateTrip() {
   const [tripName, setTripName] = useState('');
@@ -8,10 +11,10 @@ function CreateTrip() {
   const [inviteEmails, setInviteEmails] = useState([]); // List of invited emails
   const [emailInput, setEmailInput] = useState(''); // Current input value for email
   const [errorMessage, setErrorMessage] = useState(''); // Error message for invalid email
+  const [userEmail, setUserEmail] = useState(''); // State to store the authenticated user's email
 
   // Handle adding a new email to the invite list
   const handleAddEmail = () => {
-    // Check if the email ends with @gmail.com
     if (emailInput && emailInput.endsWith('@gmail.com')) {
       if (!inviteEmails.includes(emailInput)) {
         setInviteEmails([...inviteEmails, emailInput]);
@@ -30,17 +33,41 @@ function CreateTrip() {
 
   // Handle email input change
   const handleEmailChange = (e) => {
-    const input = e.target.value;
-    setEmailInput(input);
-    setErrorMessage(''); // Reset error message on input change
+    setEmailInput(e.target.value);
+    setErrorMessage(''); // Clear the error message when input changes
   };
 
+  // Fetch the authenticated user's email when the component mounts
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserEmail(user.email); // Set the authenticated user's email
+      } else {
+        setUserEmail(''); // If no user is authenticated, clear the email
+      }
+    });
+
+    // Clean up the listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
+
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Trip Name:', tripName);
-    console.log('Trip Area:', tripArea);
-    console.log('Invite Emails:', inviteEmails);
+
+    // Firestore logic: store the trip object
+    try {
+      await addDoc(collection(db, 'trips'), {
+        tripName,
+        tripArea,
+        inviteEmails,
+        createdBy: userEmail, // Use the authenticated user's email
+        createdAt: serverTimestamp(), // Use server timestamp for creation date
+      });
+      console.log('Trip successfully created!');
+    } catch (error) {
+      console.error('Error adding trip: ', error);
+    }
   };
 
   return (
