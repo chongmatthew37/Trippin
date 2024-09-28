@@ -1,0 +1,138 @@
+/* src/pages/CreateTrip.css */
+
+/* Main form container with top-left title alignment */
+.create-trip-container {
+  width: 100%;
+  height: 100vh; /* Full screen height */
+  display: flex;
+  justify-content: flex-start; /* Align form on the left */
+  align-items: flex-start; /* Align form at the top */
+  padding: 100px; /* Add padding on the top and left */
+  position: relative;
+}
+
+/* Form title aligned to the top-left */
+.form-title {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 28px;
+  color: black; /* Make the title black */
+  font-weight: bold;
+}
+
+/* Styling the form */
+.trip-form {
+  width: 100%;
+  max-width: 400px;
+  margin-left: 200px; /* Adjust this margin to place the form slightly away from the left */
+  display: flex;
+  flex-direction: column;
+  gap: 30px; /* Even spacing between form elements */
+}
+
+/* Form group for each input field */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Add some space between label and input */
+}
+
+/* Input fields with rounded corners */
+.form-control {
+  width: auto;
+  padding: 15px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.5); /* Translucent background */
+  border: none; /* Remove border */
+  color: black; /* Black text */
+  font-size: 16px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); /* Subtle shadow effect */
+  transition: box-shadow 0.3s ease;
+}
+
+/* Placeholder color set to black */
+.form-control::placeholder {
+  color: rgba(0, 0, 0, 0.7); /* Black placeholder text */
+}
+
+/* Focus state for inputs */
+.form-control:focus {
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.4); /* Stronger shadow on focus */
+}
+
+/* Flex container for email input and add button */
+.email-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between input and button */
+}
+
+/* Ensure the input takes up most of the space next to the button */
+.email-input-wrapper .form-control {
+  flex-grow: 1;
+}
+
+/* Submit and add buttons */
+.submit-btn, .add-email-btn {
+  padding: 15px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.5); /* Translucent background */
+  border: 2px solid rgba(0, 0, 0, 0.3); /* Border similar to the input fields */
+  color: black;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border 0.3s ease;
+}
+
+/* Hover and active states for submit and add button */
+.submit-btn:hover, .add-email-btn:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.5);
+}
+
+.submit-btn:active, .add-email-btn:active {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Email chips container */
+.email-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Space between chips */
+  margin-top: 10px; /* Space above chips */
+}
+
+/* Individual email chip */
+.email-chip {
+  background-color: #e0e0e0;
+  padding: 10px 15px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: black;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Remove button inside chip */
+.remove-chip {
+  font-size: 18px;
+  margin-left: 10px;
+  cursor: pointer;
+  color: #666;
+  font-weight: bold;
+}
+
+/* Hover effect on remove button */
+.remove-chip:hover {
+  color: #000;
+}
+
+/* Body background color */
+body {
+  margin: 0;
+  background-color: #e8d8c3; /* Match the background color from your image */
+  height: 100vh;
+}
