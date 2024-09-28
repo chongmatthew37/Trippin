@@ -12,7 +12,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [userEmail, setUserEmail] = useState('');
-  const [inviteeStatus, setInviteeStatus] = useState({}); // Store form status for all trips
+  const [inviteeStatus, setInviteeStatus] = useState({}); // Store form status for invitees
   const [selfStatus, setSelfStatus] = useState({}); // Store the invitee's own form status
 
   useEffect(() => {
@@ -104,13 +104,19 @@ export default function Dashboard() {
   }, [trips, userEmail]);
 
   const handleCardClick = (tripId, isInviter) => {
-    if (!isInviter && selfStatus[tripId] !== 'Complete')  {
-      // If the user is an invitee, navigate to CreateTrip2 to fill out the form
+    if (!isInviter && selfStatus[tripId] !== 'Complete') {
+      // If the user is an invitee and their form status is not 'Complete', navigate to the form
       navigate('/createTrip2', { state: { tripId } });
     }
   };
 
   const isInviter = (trip) => trip.createdBy === userEmail;
+
+  // Function to check if all invitees have completed the form
+  const allInviteesCompleted = (tripId) => {
+    const statuses = inviteeStatus[tripId] || {};
+    return Object.values(statuses).every(status => status === 'Complete');
+  };
 
   const settings = {
     dots: true,
@@ -149,11 +155,11 @@ export default function Dashboard() {
             key={trip.id}
             onClick={() => handleCardClick(trip.id, isInviter(trip))}
             sx={{
-              margin: '20px 50px', // Adjust margins here
+              margin: '20px 50px',
               backgroundColor: '#fff',
               borderRadius: '8px',
               boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-              cursor: !isInviter(trip) && selfStatus[trip.id] !== 'Complete' ? 'pointer' : 'default', // Invitees can click, inviter can't
+              cursor: !isInviter(trip) && selfStatus[trip.id] !== 'Complete' ? 'pointer' : 'default', // Only allow clicking if status is not 'Complete'
             }}
           >
             <CardContent>
@@ -190,6 +196,15 @@ export default function Dashboard() {
                       </Typography>
                     )}
                   </List>
+
+                  {/* Blend button (grayed out if not all invitees have completed the form) */}
+                  <Button
+                    variant="contained"
+                    sx={{ marginTop: 2 }}
+                    disabled={!allInviteesCompleted(trip.id)} // Disable the button if not all invitees have completed the form
+                  >
+                    Blend
+                  </Button>
                 </>
               )}
 
