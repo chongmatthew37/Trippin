@@ -59,7 +59,7 @@ const TravelProfile = () => {
       });
 
       console.log("Document written successfully");
-      navigate('/dashboard');
+      navigate('/travelprofile2');
     } catch (e) {
       console.error("Error adding document: ", e);
     }
