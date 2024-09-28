@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Typography,
   Grid,
@@ -7,11 +7,12 @@ import {
   Box,
   Container,
   Paper,
-  TextField,
-  Button, // <-- Add this line to import the Button component
+  Button,
 } from '@mui/material';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
-
+import { useLocation, useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore'; // Firestore methods to fetch data
+import { db } from './firebase'; // Import Firestore config
 
 const mapStyles = {
   height: '300px',
@@ -22,19 +23,18 @@ const initialCenter = {
   lat: 48.8584, // Default to Eiffel Tower
   lng: 2.2945,
 };
+
 const transportationMethods = [
-    { name: 'walking', maxDistance: 20 },
-    { name: 'biking', maxDistance: 30 },
-    { name: 'driving', maxDistance: 100 },
-    { name: 'bus', maxDistance: 100 },
-    { name: 'train', maxDistance: 100 },
-  ];
+  { name: 'walking', maxDistance: 20 },
+  { name: 'biking', maxDistance: 30 },
+  { name: 'driving', maxDistance: 100 },
+  { name: 'bus', maxDistance: 100 },
+  { name: 'train', maxDistance: 100 },
+];
 
 const DashboardPage = () => {
-  const [address, setAddress] = useState('Av. Gustave Eiffel, 75007 Paris, France');
   const [center, setCenter] = useState(initialCenter); // State for map center
   const [markerPosition, setMarkerPosition] = useState(initialCenter); // State for marker position
-
   const [checked, setChecked] = useState({
     walking: false,
     biking: false,
@@ -42,7 +42,6 @@ const DashboardPage = () => {
     bus: false,
     train: false,
   });
-
   const [distances, setDistances] = useState({
     walking: 0,
     biking: 0,
@@ -51,20 +50,19 @@ const DashboardPage = () => {
     train: 0,
   });
 
+  const location = useLocation(); // Use location to get tripId passed from another page
+  const { address } = location.state || {}; // Extract tripId from location state
+  const navigate = useNavigate();
+
   // Load the Google Maps API
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: 'AIzaSyAaKr-fzmU_al-JZInXlxH2c3XJZghcvds',
   });
 
-  // Function to handle changes in the address input field
-  const handleAddressChange = (e) => {
-    setAddress(e.target.value); // Update the address state as the user types
-  };
-
-  // Function to handle geocoding of the entered address
-  const handleAddressSubmit = () => {
+  // Geocode the address to get the lat/lng
+  const handleGeocodeAddress = (address) => {
     if (!isLoaded) {
-      alert('Google Maps API is not loaded yet!');
+      //alert('Google Maps API is not loaded yet!');
       return;
     }
 
@@ -80,10 +78,18 @@ const DashboardPage = () => {
     });
   };
 
+  useEffect(() => {
+    if (address) {
+      handleGeocodeAddress(address); // Call geocode with the provided address when component mounts
+    }
+  }, [address, isLoaded]); 
+
+  // Handle transportation method selection (checkboxes)
   const handleCheckboxChange = (method) => {
     setChecked((prev) => ({ ...prev, [method]: !prev[method] }));
   };
 
+  // Handle distance sliders
   const handleSliderChange = (method, value) => {
     setDistances((prev) => ({ ...prev, [method]: value }));
   };
@@ -98,20 +104,9 @@ const DashboardPage = () => {
         How Do You Like to Get Around?
       </Typography>
 
-      <Paper sx={{ padding: 2, marginBottom: 2 }}>
-        {/* TextField to input the address */}
-        <TextField
-          fullWidth
-          label="Enter Address"
-          variant="outlined"
-          value={address} // Address value from the state
-          onChange={handleAddressChange} // Update address state on input change
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') handleAddressSubmit(); // Automatically submit address when "Enter" is pressed
-          }}
-          sx={{ marginBottom: 2 }}
-        />
-      </Paper>
+      <Typography variant="h6" align="center" sx={{ marginY: 2 }}>
+        Destination: {address}
+      </Typography>
 
       <Grid container spacing={2}>
         {/* Left Side: Transportation Methods */}
@@ -122,7 +117,6 @@ const DashboardPage = () => {
               Select the transportation methods you use and how far you're willing to travel with each method.
             </Typography>
 
-            {/* Loop through transportation methods and display checkboxes and sliders */}
             {transportationMethods.map((method) => (
               <Box
                 key={method.name}
@@ -136,14 +130,14 @@ const DashboardPage = () => {
                   {method.name}
                 </Typography>
                 <Slider
-                value={distances[method.name]}
-                min={0}
-                max={method.maxDistance} // Set the max distance here
-                step={0.1}
-                valueLabelDisplay="auto"
-                onChange={(e, value) => setDistances((prev) => ({ ...prev, [method.name]: value }))}
-                sx={{ color: 'green', flex: 1 }}
-                disabled={!checked[method.name]}
+                  value={distances[method.name]}
+                  min={0}
+                  max={method.maxDistance} // Set the max distance here
+                  step={0.1}
+                  valueLabelDisplay="auto"
+                  onChange={(e, value) => handleSliderChange(method.name, value)}
+                  sx={{ color: 'green', flex: 1 }}
+                  disabled={!checked[method.name]}
                 />
                 <Typography variant="body2" sx={{ marginLeft: 2 }}>
                   {distances[method.name]} miles
@@ -161,18 +155,17 @@ const DashboardPage = () => {
               zoom={14}
               center={center} // Center the map based on the 'center' state
             >
-              {/* Marker is positioned based on the 'markerPosition' state */}
-              {markerPosition && <Marker position={markerPosition} />}
+              {markerPosition && <Marker position={markerPosition} />} {/* Display marker */}
             </GoogleMap>
           </Paper>
         </Grid>
       </Grid>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 4 }}>
-        <Button variant="contained" color="primary">
+        <Button variant="contained" color="primary" onClick={() => navigate('/createTrip1')}>
           Back
         </Button>
-        <Button variant="contained" color="primary">
+        <Button variant="contained" color="primary" onClick={() => navigate('/dashboard')}>
           Next
         </Button>
       </Box>

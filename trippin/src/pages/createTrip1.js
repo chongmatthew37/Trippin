@@ -60,7 +60,6 @@ function CreateTrip() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/createTrip2');
 
     // Firestore logic: store the trip object
     try {
@@ -75,6 +74,7 @@ function CreateTrip() {
         createdAt: serverTimestamp(), // Use server timestamp for creation date
       });
       console.log('Trip successfully created!');
+      navigate('/createTrip2', { state: { address: address } });
     } catch (error) {
       console.error('Error adding trip: ', error);
     }
