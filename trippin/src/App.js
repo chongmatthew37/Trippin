@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import logo from './trippinlogo.png';
 import './App.css';
 import Login from './pages/Login'; // Make sure path to Login is correct
+import TravelProfile from './pages/TravelProfile';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <div className="App-body">
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/TravelProfile" element={<TravelProfile />} />
           </Routes>
         </div>
       </div>
