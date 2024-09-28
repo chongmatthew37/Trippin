@@ -28,7 +28,7 @@ function Login() {
       {!user ? (
         <div>
           <h2>Sign in with Google!</h2>
-          <button onClick={handleLogin}>Sign in with Google</button>
+          <button className="login-with-google-btn" onClick={handleLogin}>Sign in with Google</button>
         </div>
       ) : (
         <div>

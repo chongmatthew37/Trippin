@@ -8,12 +8,11 @@
 
 .App-logo {
   height: 15vmin;
-  pointer-events: none;
 }
 
 .App-header {
   background-color: #e8d8c3;
-  height: 200px; /* Set a fixed height for the header */
+  height: auto; /* Set a fixed height for the header */
   display: flex;
   align-items: center;
   justify-content: flex-start;

@@ -14,7 +14,7 @@ function App() {
         </header>
         <div className="App-body">
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Login />} />
           </Routes>
         </div>
       </div>
