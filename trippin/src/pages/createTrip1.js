@@ -63,7 +63,8 @@ function CreateTrip() {
 
     // Firestore logic: store the trip object
     try {
-      await addDoc(collection(db, 'trips'), {
+      // Create a new trip document in Firestore and capture the document reference
+      const tripDocRef = await addDoc(collection(db, 'trips'), {
         tripName,
         tripArea,
         inviteEmails,
@@ -73,8 +74,13 @@ function CreateTrip() {
         createdBy: userEmail, // Use the authenticated user's email
         createdAt: serverTimestamp(), // Use server timestamp for creation date
       });
-      console.log('Trip successfully created!');
-      navigate('/createTrip2', { state: { address: address } });
+
+      const tripId = tripDocRef.id; // Get the generated tripId (document ID)
+
+      console.log('Trip successfully created with ID:', tripId);
+
+      // Navigate to CreateTrip2 and pass the tripId and address via state
+      navigate('/createTrip2', { state: { tripId, address } });
     } catch (error) {
       console.error('Error adding trip: ', error);
     }
