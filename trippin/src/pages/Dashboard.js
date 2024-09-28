@@ -14,7 +14,7 @@ export default function Dashboard() {
   return (
     <Container maxWidth="md">
       <Box sx={{ textAlign: 'center', marginTop: 4, marginBottom: 4 }}>
-        <Typography variant="h4" sx={{ color: '#84e3f3' }}>
+        <Typography variant="h4" sx={{ color: '#000000' }}>
           Your Saved Trips
         </Typography>
       </Box>
