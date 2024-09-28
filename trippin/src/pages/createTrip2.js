@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Typography, Grid, Checkbox, Slider, Box, Container, Paper, Button } from '@mui/material';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Typography, Grid, Slider, Box, Container, Paper, Button } from '@mui/material';
 import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { doc, setDoc, getDoc } from 'firebase/firestore'; // Firestore methods to fetch and update data
-import { auth, db } from './firebase'; // Import Firestore config and auth
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
 
 const mapStyles = {
   height: '300px',
@@ -16,23 +16,16 @@ const initialCenter = {
 };
 
 const transportationMethods = [
-  { name: 'walking', maxDistance: 20 },
-  { name: 'biking', maxDistance: 30 },
-  { name: 'driving', maxDistance: 100 },
-  { name: 'bus', maxDistance: 100 },
-  { name: 'train', maxDistance: 100 },
+  { name: 'walking', maxDistance: 20, color: '#4dacd1' },
+  { name: 'biking', maxDistance: 30, color: '#4dacd1' },
+  { name: 'driving', maxDistance: 100, color: '#4dacd1' },
+  { name: 'bus', maxDistance: 100, color: '#4dacd1' },
+  { name: 'train', maxDistance: 100, color: '#4dacd1' },
 ];
 
 const CreateTrip2 = () => {
-  const [center, setCenter] = useState(initialCenter); // State for map center, defaults to Eiffel Tower
-  const [markerPosition, setMarkerPosition] = useState(initialCenter); // State for marker position
-  const [checked, setChecked] = useState({
-    walking: false,
-    biking: false,
-    driving: false,
-    bus: false,
-    train: false,
-  });
+  const [center, setCenter] = useState(initialCenter);
+  const [markerPosition, setMarkerPosition] = useState(null); // Start with null
   const [distances, setDistances] = useState({
     walking: 0,
     biking: 0,
@@ -40,32 +33,118 @@ const CreateTrip2 = () => {
     bus: 0,
     train: 0,
   });
-  const [loading, setLoading] = useState(false); // Loading state for button
-  const [tripData, setTripData] = useState(null); // State to store trip data from Firestore
+  const [loading, setLoading] = useState(false);
+  const [tripData, setTripData] = useState(null);
 
   const location = useLocation();
-  const { tripId, address: initialAddress } = location.state || {}; // Extract tripId and address from location state
+  const { tripId, address: initialAddress } = location.state || {};
   const navigate = useNavigate();
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyAaKr-fzmU_al-JZInXlxH2c3XJZghcvds',
+    googleMapsApiKey: 'AIzaSyAaKr-fzmU_al-JZInXlxH2c3XJZghcvds', // Replace with your API key
+    libraries: ['places'], // Include any necessary libraries
   });
 
-  // Geocode the address to get the lat/lng
-  const handleGeocodeAddress = (address) => {
-    if (!isLoaded) return;
+  const mapInstance = useRef(null);
+  const circlesRef = useRef([]);
+  const markersRef = useRef([]);
 
-    const geocoder = new window.google.maps.Geocoder();
-    geocoder.geocode({ address }, (results, status) => {
-      if (status === 'OK') {
-        const location = results[0].geometry.location;
-        setCenter({ lat: location.lat(), lng: location.lng() });
-        setMarkerPosition({ lat: location.lat(), lng: location.lng() });
-      } else {
-        alert('Geocode was not successful for the following reason: ' + status);
-      }
-    });
-  };
+  const createCircles = useCallback(() => {
+    if (isLoaded && mapInstance.current && window.google) {
+      // Remove all existing circles from the map
+      circlesRef.current.forEach((circle) => {
+        circle.setMap(null);
+      });
+      markersRef.current.forEach((marker) => {
+        marker.setMap(null);
+      });
+
+      // Clear the circles and markers arrays
+      circlesRef.current = [];
+      markersRef.current = [];
+
+      // Create new circles for each transportation method
+      transportationMethods.forEach((method) => {
+        const { name, color } = method;
+        const selected = distances[name] > 0;
+        const radius = distances[name];
+
+        if (selected) {
+          const circle = new window.google.maps.Circle({
+            map: mapInstance.current,
+            center: mapInstance.current.getCenter(),
+            radius: Number(radius) * 1609.34, // convert radius from miles to meters
+            strokeColor: color,
+            strokeOpacity: 0.5,
+            strokeWeight: 2,
+            fillColor: color,
+            fillOpacity: 0.1,
+          });
+
+          // Add the new circle to the circles array
+          circlesRef.current.push(circle);
+
+          const earthRadiusMeters = 6371000;
+          const center = circle.getCenter();
+          const labelLat =
+            center.lat() +
+            ((radius * 1609.34) / earthRadiusMeters) * (180 / Math.PI);
+
+          // Create a marker at the edge of the circle
+          const marker = new window.google.maps.Marker({
+            position: { lat: labelLat, lng: center.lng() },
+            map: mapInstance.current,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              scale: 0,
+              labelOrigin: new window.google.maps.Point(0, 0),
+            },
+            label: {
+              text: name,
+              color: '#000821',
+              fontSize: '14px',
+              fontWeight: 'bold',
+            },
+          });
+
+          // Add the new marker to the markers array
+          markersRef.current.push(marker);
+        }
+      });
+    }
+  }, [distances, isLoaded]);
+
+  const onMapLoad = useCallback(
+    (map) => {
+      mapInstance.current = map;
+      createCircles();
+    },
+    [createCircles]
+  );
+
+  const handleGeocodeAddress = useCallback(
+    (address) => {
+      if (!isLoaded) return;
+
+      const geocoder = new window.google.maps.Geocoder();
+      geocoder.geocode({ address }, (results, status) => {
+        if (status === 'OK') {
+          const location = results[0].geometry.location;
+          const newCenter = { lat: location.lat(), lng: location.lng() };
+          setCenter(newCenter);
+          setMarkerPosition(newCenter);
+
+          if (mapInstance.current) {
+            mapInstance.current.setCenter(newCenter);
+            createCircles();
+          }
+        } else {
+          alert('Geocode was not successful for the following reason: ' + status);
+        }
+      });
+    },
+    [isLoaded, createCircles]
+  );
 
   // Fetch trip details (like address) from Firestore using tripId
   useEffect(() => {
@@ -76,27 +155,20 @@ const CreateTrip2 = () => {
           const trip = tripDoc.data();
           setTripData(trip);
 
-          // Use the trip's address from Firestore or the initial address from state
           const destinationAddress = trip.address || initialAddress;
           if (destinationAddress) {
-            handleGeocodeAddress(destinationAddress); // Geocode and update map
+            handleGeocodeAddress(destinationAddress);
           }
         }
       }
     };
 
-    // If the initial address is available from state, use it before fetching trip data
     if (initialAddress) {
       handleGeocodeAddress(initialAddress);
     }
 
     fetchTripData();
-  }, [tripId, initialAddress, isLoaded]);
-
-  // Handle transportation method selection (checkboxes)
-  const handleCheckboxChange = (method) => {
-    setChecked((prev) => ({ ...prev, [method]: !prev[method] }));
-  };
+  }, [tripId, initialAddress, handleGeocodeAddress]);
 
   // Handle distance sliders
   const handleSliderChange = (method, value) => {
@@ -105,28 +177,33 @@ const CreateTrip2 = () => {
 
   const savePreferences = async () => {
     try {
-      setLoading(true); // Start loading
-      console.log('Saving preferences...'); // Debugging log
-      const user = auth.currentUser; // Get the current logged-in user
+      setLoading(true);
+      const user = auth.currentUser;
       if (user && tripId) {
-        console.log('User is authenticated:', user.email); // Debugging log
+        const preferredTransportation = {};
+        Object.keys(distances).forEach((method) => {
+          preferredTransportation[method] = distances[method] > 0;
+        });
+
         const preferences = {
-          preferredTransportation: checked,
+          preferredTransportation: preferredTransportation,
           distances: distances,
-          formComplete: true, // Mark the form as complete
+          formComplete: true,
         };
-  
-        // Reference to the user's preferences document in the subcollection
-        const preferencesDocRef = doc(db, 'trips', tripId, 'userPreferences', user.email);
-  
-        // Save the user's preferences in the "userPreferences" subcollection
+
+        const preferencesDocRef = doc(
+          db,
+          'trips',
+          tripId,
+          'userPreferences',
+          user.email
+        );
+
         await setDoc(preferencesDocRef, preferences, { merge: true });
-  
-        console.log('Preferences saved successfully!'); // Debugging log
-        setLoading(false); // End loading
+
+        setLoading(false);
         alert('Preferences saved successfully!');
-  
-        // Navigate to the dashboard after saving the preferences
+
         navigate('/dashboard');
       } else {
         console.error('User is not authenticated or tripId is missing.');
@@ -135,9 +212,14 @@ const CreateTrip2 = () => {
     } catch (error) {
       console.error('Error saving preferences:', error);
       alert('There was an error saving your preferences. Please try again.');
-      setLoading(false); // End loading in case of error
+      setLoading(false);
     }
   };
+
+  // Re-create circles whenever distances change
+  useEffect(() => {
+    createCircles();
+  }, [createCircles]);
 
   if (!isLoaded) {
     return <div>Loading Maps...</div>;
@@ -159,7 +241,8 @@ const CreateTrip2 = () => {
           <Paper sx={{ padding: 2 }}>
             <Typography variant="h6">Transportation Methods</Typography>
             <Typography variant="body2" sx={{ marginBottom: 2 }}>
-              Select the transportation methods you use and how far you're willing to travel with each method.
+              Adjust the sliders to indicate how far you're willing to travel with
+              each method.
             </Typography>
 
             {transportationMethods.map((method) => (
@@ -167,10 +250,6 @@ const CreateTrip2 = () => {
                 key={method.name}
                 sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}
               >
-                <Checkbox
-                  checked={checked[method.name]}
-                  onChange={() => handleCheckboxChange(method.name)}
-                />
                 <Typography variant="body2" sx={{ marginRight: 2, minWidth: 80 }}>
                   {method.name}
                 </Typography>
@@ -181,8 +260,7 @@ const CreateTrip2 = () => {
                   step={0.1}
                   valueLabelDisplay="auto"
                   onChange={(e, value) => handleSliderChange(method.name, value)}
-                  sx={{ color: 'green', flex: 1 }}
-                  disabled={!checked[method.name]}
+                  sx={{ color: method.color, flex: 1 }}
                 />
                 <Typography variant="body2" sx={{ marginLeft: 2 }}>
                   {distances[method.name]} miles
@@ -199,24 +277,31 @@ const CreateTrip2 = () => {
               mapContainerStyle={mapStyles}
               zoom={14}
               center={center}
+              onLoad={onMapLoad}
             >
-              {markerPosition && <Marker position={markerPosition} />} {/* Display marker */}
+              {markerPosition && (
+                <Marker position={markerPosition} title="Destination Address" />
+              )}
             </GoogleMap>
           </Paper>
         </Grid>
       </Grid>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 4 }}>
-        <Button variant="contained" color="primary" onClick={() => navigate('/createTrip1')}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate('/createTrip1')}
+        >
           Back
         </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={savePreferences} 
-          disabled={loading} // Disable button when loading
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={savePreferences}
+          disabled={loading}
         >
-          {loading ? 'Saving...' : 'Next'} {/* Show "Saving..." when saving */}
+          {loading ? 'Saving...' : 'Next'}
         </Button>
       </Box>
     </Container>
