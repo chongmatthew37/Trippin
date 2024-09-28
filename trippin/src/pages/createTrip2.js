@@ -301,7 +301,7 @@ const CreateTrip2 = () => {
           onClick={savePreferences}
           disabled={loading}
         >
-          {loading ? 'Saving...' : 'Next'}
+          {loading ? 'Saving...' : 'Finish'}
         </Button>
       </Box>
     </Container>
