@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Card, CardContent, Container, Box, Avatar, List, ListItem, ListItemText, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import 'slick-carousel/slick/slick.css';
@@ -12,11 +12,13 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [userEmail, setUserEmail] = useState('');
+  const [inviteeStatus, setInviteeStatus] = useState({}); // Store form status for all trips
+  const [selfStatus, setSelfStatus] = useState({}); // Store the invitee's own form status
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const email = user.email;
+        const email = user.email.toLowerCase(); // Ensure the email is lowercase
         setUserEmail(email);
 
         const invitedTripsQuery = query(collection(db, 'trips'), where('inviteEmails', 'array-contains', email));
@@ -42,12 +44,73 @@ export default function Dashboard() {
           return acc;
         }, []);
 
-        setTrips(uniqueTrips);
+        setTrips(uniqueTrips); // Set the combined unique trips to state
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Fetch invitee preferences for the inviter to see their form completion status
+  const fetchInviteePreferences = async (tripId) => {
+    const inviteeFormStatus = {};
+    try {
+      const tripDoc = await getDoc(doc(db, 'trips', tripId));
+      if (tripDoc.exists() && tripDoc.data().inviteEmails) {
+        const inviteEmails = tripDoc.data().inviteEmails.map(email => email.toLowerCase()); // Normalize email to lowercase
+        for (const email of inviteEmails) {
+          const preferencesDoc = await getDoc(doc(db, 'trips', tripId, 'userPreferences', email));
+          inviteeFormStatus[email] = preferencesDoc.exists() && preferencesDoc.data()?.formComplete ? 'Complete' : 'Incomplete';
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching invitee preferences:', error);
+    }
+    return inviteeFormStatus;
+  };
+
+  // Fetch the invitee's own form completion status
+  const fetchSelfStatus = async (tripId, email) => {
+    try {
+      const preferencesDoc = await getDoc(doc(db, 'trips', tripId, 'userPreferences', email));
+      return preferencesDoc.exists() && preferencesDoc.data()?.formComplete ? 'Complete' : 'Incomplete';
+    } catch (error) {
+      console.error('Error fetching own preferences:', error);
+      return 'Incomplete';
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllInviteeStatuses = async () => {
+      const statusMap = {};
+      const selfStatusMap = {};
+
+      for (const trip of trips) {
+        const statuses = await fetchInviteePreferences(trip.id);
+        statusMap[trip.id] = statuses;
+
+        // Fetch the logged-in user's own status if they're an invitee
+        const selfStatusForTrip = await fetchSelfStatus(trip.id, userEmail);
+        selfStatusMap[trip.id] = selfStatusForTrip;
+      }
+
+      setInviteeStatus(statusMap); // Set the invitee form status for all trips
+      setSelfStatus(selfStatusMap); // Set the user's own form status for each trip
+    };
+
+    if (trips.length > 0) {
+      fetchAllInviteeStatuses();
+    }
+  }, [trips, userEmail]);
+
+  const handleCardClick = (tripId, isInviter) => {
+    if (!isInviter && selfStatus[tripId] !== 'Complete')  {
+      // If the user is an invitee, navigate to CreateTrip2 to fill out the form
+      navigate('/createTrip2', { state: { tripId } });
+    }
+  };
+
+  const isInviter = (trip) => trip.createdBy === userEmail;
 
   const settings = {
     dots: true,
@@ -71,12 +134,6 @@ export default function Dashboard() {
     ],
   };
 
-  // Function to check if all invitees have completed the form
-  const allInviteesCompleted = (trip) => {
-    if (!trip.preferences) return false;
-    return trip.inviteEmails.every((email) => trip.preferences[email]?.formComplete === true);
-  };
-
   return (
     <Container maxWidth="auto">
       <Box sx={{ textAlign: 'center', marginTop: 4, marginBottom: 4 }}>
@@ -90,11 +147,13 @@ export default function Dashboard() {
         {trips.map((trip) => (
           <Card
             key={trip.id}
+            onClick={() => handleCardClick(trip.id, isInviter(trip))}
             sx={{
-              margin: '20px 50px',
+              margin: '20px 50px', // Adjust margins here
               backgroundColor: '#fff',
               borderRadius: '8px',
               boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+              cursor: !isInviter(trip) && selfStatus[trip.id] !== 'Complete' ? 'pointer' : 'default', // Invitees can click, inviter can't
             }}
           >
             <CardContent>
@@ -105,38 +164,34 @@ export default function Dashboard() {
                 {trip.tripArea || 'No description provided'}
               </Typography>
 
-              {/* Display List of Invitees and their form completion status */}
-              <Typography variant="subtitle1" sx={{ marginTop: 2 }}>
-                Invited Members:
-              </Typography>
-              <List dense>
-                {trip.inviteEmails && trip.inviteEmails.length > 0 ? (
-                  trip.inviteEmails.map((email, index) => {
-                    const isComplete = trip.preferences?.[email]?.formComplete;
+              {/* Show invitee's own status */}
+              {!isInviter(trip) && (
+                <Typography variant="body2" sx={{ marginTop: 1, color: 'green' }}>
+                  Your Status: {selfStatus[trip.id] || 'Incomplete'}
+                </Typography>
+              )}
 
-                    return (
-                      <ListItem key={index}>
-                        <ListItemText
-                          primary={`${email} - ${isComplete ? 'Complete' : 'Incomplete'}`}
-                        />
-                      </ListItem>
-                    );
-                  })
-                ) : (
-                  <Typography variant="body2" color="textSecondary">
-                    No invitees for this trip.
+              {/* Display Invitee Status for the inviter */}
+              {isInviter(trip) && (
+                <>
+                  <Typography variant="subtitle1" sx={{ marginTop: 2 }}>
+                    Invited Members:
                   </Typography>
-                )}
-              </List>
-
-              {/* "Blend" Button - Grayed out if not all invitees have completed the form */}
-              <Button
-                variant="contained"
-                sx={{ marginTop: 2 }}
-                disabled={!allInviteesCompleted(trip)}
-              >
-                Blend
-              </Button>
+                  <List dense>
+                    {trip.inviteEmails && trip.inviteEmails.length > 0 ? (
+                      trip.inviteEmails.map((email, index) => (
+                        <ListItem key={index}>
+                          <ListItemText primary={`${email} - ${inviteeStatus[trip.id]?.[email] || 'Incomplete'}`} />
+                        </ListItem>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">
+                        No invitees for this trip.
+                      </Typography>
+                    )}
+                  </List>
+                </>
+              )}
 
               {/* Avatar and User Info */}
               <Box sx={{ display: 'flex', alignItems: 'center', marginTop: 2 }}>
@@ -144,7 +199,7 @@ export default function Dashboard() {
                 <Box>
                   <Typography variant="body2">{trip.createdBy}</Typography>
                   <Typography variant="caption" color="textSecondary">
-                    Created on {new Date(trip.createdOn).toLocaleDateString()}
+                    Created on {new Date(trip.createdAt?.seconds * 1000).toLocaleDateString() || 'Invalid Date'}
                   </Typography>
                 </Box>
               </Box>
