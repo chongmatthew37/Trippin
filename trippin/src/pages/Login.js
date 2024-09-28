@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { signInWithPopup, signOut, auth, provider } from './firebase'; // Import from firebase.js
 // src/pages/Login.js
 import './Login.css';
+import { doc, getDoc } from "firebase/firestore";
+import { db } from './firebase'
+
 
 
 function Login() {
@@ -15,7 +18,23 @@ function Login() {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
+
+      const user = result.user;
+
+      const userPreferencesRef = doc(db, 'userPreferences', user.uid);
+    const userPreferencesSnap = await getDoc(userPreferencesRef);
+
+    if (userPreferencesSnap.exists()) {
+      const data = userPreferencesSnap.data();
+
+      if (data.foodPreferences && data.shoppingPreferences && data.activityPreferences && data.naturePreferences) {
+        navigate('/dashboard');
+      } else {
+        navigate('/TravelProfile2');
+      }
+    } else {
       navigate('/TravelProfile');
+    }
     } catch (error) {
       console.error('Error during sign-in:', error);
     }
@@ -28,19 +47,11 @@ function Login() {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      {!user ? (
+      {
         <div>
           <h2>Sign in with Google!</h2>
           <button className="login-with-google-btn" onClick={handleLogin}>Sign in with Google</button>
-        </div>
-      ) : (
-        <div>
-          <h2>Welcome, {user.displayName}</h2>
-          <img src={user.photoURL} alt={user.displayName} style={{ borderRadius: '50%', width: '100px' }} />
-          <p>Email: {user.email}</p>
-          <button onClick={handleLogout}>Sign Out</button>
-        </div>
-      )}
+        </div>}
     </div>
   );
 }
