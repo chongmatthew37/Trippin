@@ -6,6 +6,7 @@ import './App.css';
 import Login from './pages/Login'; // Make sure path to Login is correct
 import TravelProfile from './pages/TravelProfile';
 import Dashboard from './pages/Dashboard';
+import CreateTrip1 from './pages/createTrip1';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/TravelProfile" element={<TravelProfile />} />
             <Route path="/Dashboard" element={<Dashboard />} />
+            <Route path="/createTrip1" element={<CreateTrip1 />} />
           </Routes>
         </div>
       </div>

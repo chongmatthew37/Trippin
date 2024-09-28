@@ -7,11 +7,18 @@ function CreateTrip() {
   const [tripArea, setTripArea] = useState('');
   const [inviteEmails, setInviteEmails] = useState([]); // List of invited emails
   const [emailInput, setEmailInput] = useState(''); // Current input value for email
+  const [errorMessage, setErrorMessage] = useState(''); // Error message for invalid email
 
   // Handle adding a new email to the invite list
   const handleAddEmail = () => {
-    if (emailInput && !inviteEmails.includes(emailInput)) {
-      setInviteEmails([...inviteEmails, emailInput]);
+    // Check if the email ends with @gmail.com
+    if (emailInput && emailInput.endsWith('@gmail.com')) {
+      if (!inviteEmails.includes(emailInput)) {
+        setInviteEmails([...inviteEmails, emailInput]);
+        setErrorMessage(''); // Clear any previous error
+      }
+    } else {
+      setErrorMessage('Please enter a valid @gmail.com email');
     }
     setEmailInput(''); // Clear the input after adding
   };
@@ -25,6 +32,7 @@ function CreateTrip() {
   const handleEmailChange = (e) => {
     const input = e.target.value;
     setEmailInput(input);
+    setErrorMessage(''); // Reset error message on input change
   };
 
   // Handle form submission
@@ -76,12 +84,15 @@ function CreateTrip() {
               className="form-control"
               value={emailInput}
               onChange={handleEmailChange}
-              placeholder="Enter Email of Invites"
+              placeholder="Enter Gmail Invites"
             />
             <button type="button" className="submit-btn" onClick={handleAddEmail}>
               Add
             </button>
           </div>         
+          
+          {/* Display error message if email is not valid */}
+          {errorMessage && <p className="error-message">{errorMessage}</p>}
 
           {/* Display added emails */}
           <div className="email-list">
