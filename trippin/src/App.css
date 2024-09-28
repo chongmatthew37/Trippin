@@ -1,5 +1,9 @@
+/* App.css */
 .App {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the app fills the entire viewport */
 }
 
 .App-logo {
@@ -9,29 +13,62 @@
 
 .App-header {
   background-color: #e8d8c3;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: auto 1fr; /* Logo takes the first column, content the rest */
-  grid-template-rows: auto 1fr; /* Logo takes the top row */
+  height: 200px; /* Set a fixed height for the header */
+  display: flex;
   align-items: center;
-  justify-items: start; /* Align logo to the start */
+  justify-content: flex-start;
   padding: 20px;
   font-size: calc(10px + 2vmin);
   color: white;
 }
 
-.logo {
-  grid-column: 1 / 2;
-  grid-row: 1 / 2;
-  justify-self: start; /* Align the logo to the top left */
-  height: 50px;
+.App-body {
+  flex-grow: 1; /* This allows the body to grow and take up remaining space */
+  display: flex; /* Flexbox to center content */
+  justify-content: center; /* Center content horizontally */
+  align-items: top; /* Center content vertically */
+  background-color: #e8d8c3;
+  padding: 20px;
+  color: black;
+  text-align: center; /* Center the text */
 }
 
-.App-body {
-  grid-column: 1 / 3; /* Span the whole width of the grid for the body */
-  grid-row: 2 / 3; /* Body content starts below the header */
-  padding: 20px;
-  background-color: #ffffff;
-  color: black;
-  text-align: left;
+/* Login.css */
+.login-page {
+  display: flex;
+  justify-content: center; /* Center the container horizontally */
+  align-items: center; /* Center the container vertically */
+  width: 100%;
+  height: 100%; /* Ensure the container takes up all available space */
+}
+
+.login-container {
+  background-color: #f5f5f5; /* Light background color */
+  padding: 40px; /* Padding for spacing inside the container */
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 100%; /* Take up full width up to max-width */
+}
+
+.login-button {
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 20px; /* Add space above the button */
+  display: inline-flex;
+  align-items: center;
+}
+
+.login-button img {
+  margin-right: 10px;
+}
+
+.login-button:hover {
+  background-color: #357ae8;
 }
