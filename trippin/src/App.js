@@ -5,6 +5,7 @@ import logo from './trippinlogo.png';
 import './App.css';
 import Login from './pages/Login'; // Make sure path to Login is correct
 import TravelProfile from './pages/TravelProfile';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/TravelProfile" element={<TravelProfile />} />
+            <Route path="/Dashboard" element={<Dashboard />} />
           </Routes>
         </div>
       </div>
