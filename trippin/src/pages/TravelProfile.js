@@ -1,6 +1,10 @@
 // src/components/TravelProfile.js
 import React, { useState } from 'react';
 import { Button, Card, CardContent, Grid, TextField } from '@mui/material';
+import { db } from "./firebase"
+import { useNavigate } from 'react-router-dom';
+import { collection, addDoc, doc, setDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const preferencesList = [
   "Accessibility", "Active Lifestyle", "Affordability", "Casual", "Cleanliness", 
@@ -11,6 +15,7 @@ const preferencesList = [
 const TravelProfile = () => {
   const [selectedPreferences, setSelectedPreferences] = useState([]);
   const [newPreference, setNewPreference] = useState('');
+  const navigate = useNavigate();
 
   const handleSelect = (preference) => {
     setSelectedPreferences(prev => 
@@ -27,16 +32,31 @@ const TravelProfile = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+      console.error("User is not authenticated");
+      return;
+    }
+
     console.log("Selected Preferences:", selectedPreferences);
-    // Here you would save the preferences to a backend or local storage
-    // For example, send the data to a server:
-    // fetch('/api/savePreferences', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ preferences: selectedPreferences }),
-    // })
-  };
+
+    try {
+      // Set the document ID to the user's UID to match Firestore rules
+      const docRef = await setDoc(doc(db, "userPreferences", user.uid), {
+        preferences: selectedPreferences,
+        timestamp: new Date(),
+        userId: user.uid  // Include user ID for tracking
+      });
+
+      console.log("Document written successfully");
+      navigate('/dashboard');
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+};
 
   return (
     <div>
@@ -45,7 +65,7 @@ const TravelProfile = () => {
         {preferencesList.map((preference, idx) => (
           <Grid item xs={6} sm={4} key={idx}>
             <Card onClick={() => handleSelect(preference)} style={{
-              backgroundColor: selectedPreferences.includes(preference) ? '#4e97ae' : '#ffffff',
+              backgroundColor: selectedPreferences.includes(preference) ? '#84e3f3' : '#ffffff',
               cursor: 'pointer',
               border: selectedPreferences.includes(preference) ? '2px solid blue' : '1px solid gray'
             }}>
