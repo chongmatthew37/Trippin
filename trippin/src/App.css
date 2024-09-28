@@ -3,32 +3,35 @@
 }
 
 .App-logo {
-  height: 40vmin;
+  height: 15vmin;
   pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
 }
 
 .App-header {
   background-color: #e8d8c3;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto 1fr; /* Logo takes the first column, content the rest */
+  grid-template-rows: auto 1fr; /* Logo takes the top row */
   align-items: center;
-  justify-content: center;
+  justify-items: start; /* Align logo to the start */
+  padding: 20px;
   font-size: calc(10px + 2vmin);
   color: white;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.logo {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  justify-self: start; /* Align the logo to the top left */
+  height: 50px;
+}
+
+.App-body {
+  grid-column: 1 / 3; /* Span the whole width of the grid for the body */
+  grid-row: 2 / 3; /* Body content starts below the header */
+  padding: 20px;
+  background-color: #ffffff;
+  color: black;
+  text-align: left;
 }
