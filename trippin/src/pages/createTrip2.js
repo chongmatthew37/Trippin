@@ -22,7 +22,6 @@ const initialCenter = {
   lat: 48.8584, // Default to Eiffel Tower
   lng: 2.2945,
 };
-
 const transportationMethods = [
     { name: 'walking', maxDistance: 20 },
     { name: 'biking', maxDistance: 30 },
