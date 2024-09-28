@@ -4,6 +4,7 @@ import './createTrip1.css';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // Import Firestore methods
 import { db, auth } from './firebase'; // Import Firestore and Auth instances from Firebase
 import { onAuthStateChanged } from 'firebase/auth'; // Import Auth state change listener
+import { useNavigate } from 'react-router-dom';
 
 function CreateTrip() {
   const [tripName, setTripName] = useState('');
@@ -12,6 +13,7 @@ function CreateTrip() {
   const [emailInput, setEmailInput] = useState(''); // Current input value for email
   const [errorMessage, setErrorMessage] = useState(''); // Error message for invalid email
   const [userEmail, setUserEmail] = useState(''); // State to store the authenticated user's email
+  const navigate = useNavigate();
 
   // Handle adding a new email to the invite list
   const handleAddEmail = () => {
@@ -54,6 +56,7 @@ function CreateTrip() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    navigate('/createTrip2');
 
     // Firestore logic: store the trip object
     try {
