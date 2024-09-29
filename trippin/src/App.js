@@ -38,7 +38,7 @@ function App() {
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/createTrip1" element={<CreateTrip1 />} />
           <Route path="/createTrip2" element={<CreateTrip2 />} />
-          <Route path="/itinerary" element={<Itinerary />} />
+          <Route path="/itinerary/:tripId" element={<Itinerary />} />
         </Routes>
       </div>
     </div>
