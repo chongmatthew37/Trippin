@@ -7,6 +7,7 @@ import { db, auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import './Dashboard.css';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -142,7 +143,7 @@ export default function Dashboard() {
 
   return (
     <Container maxWidth="auto">
-      <Box sx={{ textAlign: 'center', marginTop: 4, marginBottom: 4 }}>
+      <Box sx={{ textAlign: 'center', marginTop: 2, marginBottom: 4 }}>
         <Typography variant="h4" sx={{ color: '#000000' }}>
           Your Saved Trips
         </Typography>
