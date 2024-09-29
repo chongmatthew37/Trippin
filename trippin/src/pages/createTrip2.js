@@ -51,19 +51,11 @@ const CreateTrip2 = () => {
 
   const createCircles = useCallback(() => {
     if (isLoaded && mapInstance.current && window.google) {
-      // Remove all existing circles from the map
-      circlesRef.current.forEach((circle) => {
-        circle.setMap(null);
-      });
-      markersRef.current.forEach((marker) => {
-        marker.setMap(null);
-      });
-
-      // Clear the circles and markers arrays
+      circlesRef.current.forEach((circle) => circle.setMap(null));
+      markersRef.current.forEach((marker) => marker.setMap(null));
       circlesRef.current = [];
       markersRef.current = [];
 
-      // Create new circles for each transportation method
       transportationMethods.forEach((method) => {
         const { name, color } = method;
         const selected = distances[name] > 0;
@@ -81,7 +73,6 @@ const CreateTrip2 = () => {
             fillOpacity: 0.1,
           });
 
-          // Add the new circle to the circles array
           circlesRef.current.push(circle);
 
           const earthRadiusMeters = 6371000;
@@ -90,7 +81,6 @@ const CreateTrip2 = () => {
             center.lat() +
             ((radius * 1609.34) / earthRadiusMeters) * (180 / Math.PI);
 
-          // Create a marker at the edge of the circle
           const marker = new window.google.maps.Marker({
             position: { lat: labelLat, lng: center.lng() },
             map: mapInstance.current,
@@ -101,13 +91,13 @@ const CreateTrip2 = () => {
             },
             label: {
               text: name,
-              color: '#000821',
+              color: '#0e395a',
               fontSize: '14px',
               fontWeight: 'bold',
+              fontFamily: 'Metropolis, sans-serif',
             },
           });
 
-          // Add the new marker to the markers array
           markersRef.current.push(marker);
         }
       });
@@ -146,7 +136,6 @@ const CreateTrip2 = () => {
     [isLoaded, createCircles]
   );
 
-  // Fetch trip details (like address) from Firestore using tripId
   useEffect(() => {
     const fetchTripData = async () => {
       if (tripId) {
@@ -170,7 +159,6 @@ const CreateTrip2 = () => {
     fetchTripData();
   }, [tripId, initialAddress, handleGeocodeAddress]);
 
-  // Handle distance sliders
   const handleSliderChange = (method, value) => {
     setDistances((prev) => ({ ...prev, [method]: value }));
   };
@@ -216,7 +204,6 @@ const CreateTrip2 = () => {
     }
   };
 
-  // Re-create circles whenever distances change
   useEffect(() => {
     createCircles();
   }, [createCircles]);
@@ -226,21 +213,53 @@ const CreateTrip2 = () => {
   }
 
   return (
-    <Container maxWidth="md">
-      <Typography variant="h4" align="center" sx={{ marginY: 4 }}>
+    <Container
+      maxWidth="lg" // Changed maxWidth to lg to expand the container
+      sx={{ paddingLeft: '20px', paddingRight: '20px' }} // Reduced padding for a wider layout
+    >
+      <Typography
+        variant="h4"
+        align="center"
+        sx={{
+          marginTop: 2, // Reduced space from top
+          marginBottom: 2, // Adjust this to change spacing below the title
+          fontFamily: 'Metropolis, sans-serif',
+          color: '#0e395a',
+          fontWeight: 'bold', // Make it bold
+        }}
+      >
         How Do You Like to Get Around?
       </Typography>
 
-      <Typography variant="h6" align="center" sx={{ marginY: 2 }}>
+      <Typography
+        variant="h6"
+        align="center"
+        sx={{
+          marginY: 2,
+          fontFamily: 'Metropolis, sans-serif',
+          color: '#0e395a',
+        }}
+      >
         Destination: {initialAddress || tripData?.address || 'Loading...'}
       </Typography>
 
-      <Grid container spacing={2}>
-        {/* Left Side: Transportation Methods */}
+      <Grid container spacing={3}> {/* Increased spacing to provide some extra room between elements */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ padding: 2 }}>
-            <Typography variant="h6">Transportation Methods</Typography>
-            <Typography variant="body2" sx={{ marginBottom: 2 }}>
+            <Typography
+              variant="h6"
+              sx={{ fontFamily: 'Metropolis, sans-serif', color: '#0e395a' }}
+            >
+              Transportation Methods
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                marginBottom: 2,
+                fontFamily: 'Metropolis, sans-serif',
+                color: '#0e395a',
+              }}
+            >
               Adjust the sliders to indicate how far you're willing to travel with
               each method.
             </Typography>
@@ -248,9 +267,21 @@ const CreateTrip2 = () => {
             {transportationMethods.map((method) => (
               <Box
                 key={method.name}
-                sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  marginBottom: 2,
+                }}
               >
-                <Typography variant="body2" sx={{ marginRight: 2, minWidth: 80 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    marginRight: 2,
+                    minWidth: 80,
+                    fontFamily: 'Metropolis, sans-serif',
+                    color: '#0e395a',
+                  }}
+                >
                   {method.name}
                 </Typography>
                 <Slider
@@ -262,7 +293,14 @@ const CreateTrip2 = () => {
                   onChange={(e, value) => handleSliderChange(method.name, value)}
                   sx={{ color: method.color, flex: 1 }}
                 />
-                <Typography variant="body2" sx={{ marginLeft: 2 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    marginLeft: 2,
+                    fontFamily: 'Metropolis, sans-serif',
+                    color: '#0e395a',
+                  }}
+                >
                   {distances[method.name]} miles
                 </Typography>
               </Box>
@@ -270,12 +308,11 @@ const CreateTrip2 = () => {
           </Paper>
         </Grid>
 
-        {/* Right Side: Map */}
         <Grid item xs={12} md={6}>
           <Paper sx={{ padding: 2, height: 300 }}>
             <GoogleMap
               mapContainerStyle={mapStyles}
-              zoom={14}
+              zoom={10}
               center={center}
               onLoad={onMapLoad}
             >
@@ -290,27 +327,28 @@ const CreateTrip2 = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 4 }}>
         <Button
           variant="contained"
-          onClick={() => navigate('/createTrip1')}
-          sx={{ 
-            backgroundColor: '#4dacd1', 
-            '&:hover': { backgroundColor: '#4293a9' } // Darker shade on hover
+          onClick={() => navigate('/Dashboard')}
+          sx={{
+            backgroundColor: '#4dacd1',
+            '&:hover': { backgroundColor: '#4293a9' },
+            fontFamily: 'Metropolis, sans-serif',
           }}
         >
-          Back
+          Back To Dashboard
         </Button>
         <Button
           variant="contained"
           onClick={savePreferences}
           disabled={loading}
-          sx={{ 
-            backgroundColor: '#4dacd1', 
-            '&:hover': { backgroundColor: '#4293a9' } // Darker shade on hover
+          sx={{
+            backgroundColor: '#4dacd1',
+            '&:hover': { backgroundColor: '#4293a9' },
+            fontFamily: 'Metropolis, sans-serif',
           }}
         >
           {loading ? 'Saving...' : 'Finish'}
         </Button>
       </Box>
-
     </Container>
   );
 };
