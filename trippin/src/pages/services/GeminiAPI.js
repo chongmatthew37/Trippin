@@ -1,26 +1,22 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI('AIzaSyD_i2Z5txpsXGLQU3nbHBS8H6ELczp3qxM'); // Use environment variable for API key
+
 const GeminiAPI = {
-  generateItinerary: async (tripId) => {
+  generateItinerary: async (prompt) => {
     try {
-      const response = await fetch('https://gemini-ai-api.com/generate-itinerary', {
-        method: 'POST', // Specify the HTTP method
-        headers: {
-          'Content-Type': 'application/json', // Ensure the content type is JSON
-        },
-        body: JSON.stringify({ tripId }), // Convert the tripId to a JSON string
-      });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      // Check if the response is OK
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json(); // Parse the JSON from the response
-      return data; // Return the generated itinerary
+      // Generate content based on the provided prompt
+      const result = await model.generateContent(prompt);
+      console.log(result)
+      // Handle the response and return the text content
+      return result.response.text(); 
     } catch (error) {
       console.error('Error generating itinerary:', error);
       throw error;
     }
   },
-};
+}
 
 export default GeminiAPI;

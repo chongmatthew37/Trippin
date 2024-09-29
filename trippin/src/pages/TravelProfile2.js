@@ -103,7 +103,7 @@ const TravelProfile2 = () => {
     setLoading(true);
 
     try {
-      await setDoc(doc(db, "userPreferences", user.uid), {
+      await setDoc(doc(db, "userPreferences", user.email), {
         foodPreferences: foodPrefs,
         shoppingPreferences: shoppingPrefs,
         activityPreferences: activityPrefs,
