@@ -1,27 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from './firebase'; // Import your Firebase configuration
-import { doc, setDoc} from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import './TravelProfile2.css'; // Import the CSS file here
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth";
+import { Box, Button, IconButton, TextField, Typography, MenuItem, FormControl, Select, FormHelperText } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
 
 const TravelProfile2 = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  // Add edit mode states for each preference
+  const [editMode, setEditMode] = useState({
+    food: false,
+    shopping: false,
+    activity: false,
+    nature: false,
+  });
+
   const [foodPrefs, setFoodPrefs] = useState({
     title: 'Restaurant',
-    costPreference: '$$',
+    costPreference: '',
     preferences: '',
   });
 
   const [shoppingPrefs, setShoppingPrefs] = useState({
     title: 'Shopping',
-    costPreference: '$$',
+    costPreference: '',
     preferences: '',
   });
 
   const [activityPrefs, setActivityPrefs] = useState({
     title: 'Activities & Entertainment',
-    costPreference: '$$',
+    costPreference: '',
     preferences: '',
   });
 
@@ -31,20 +44,50 @@ const TravelProfile2 = () => {
     preferences: '',
   });
 
-  const handleRestaurantChange = (e) => {
-    setFoodPrefs({ ...foodPrefs, [e.target.name]: e.target.value });
+  const [allFieldsFilled, setAllFieldsFilled] = useState(false);
+
+  useEffect(() => {
+    const checkIfAllFieldsFilled = () => {
+      if (
+        foodPrefs.preferences &&
+        shoppingPrefs.preferences &&
+        activityPrefs.preferences &&
+        naturePrefs.preferences &&
+        foodPrefs.costPreference &&
+        shoppingPrefs.costPreference &&
+        activityPrefs.costPreference &&
+        naturePrefs.costPreference
+      ) {
+        setAllFieldsFilled(true);
+      } else {
+        setAllFieldsFilled(false);
+      }
+    };
+
+    checkIfAllFieldsFilled();
+  }, [foodPrefs, shoppingPrefs, activityPrefs, naturePrefs]);
+
+  // Function to toggle edit mode
+  const toggleEditMode = (section) => {
+    setEditMode((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
   };
 
-  const handleShoppingChange = (e) => {
-    setShoppingPrefs({ ...shoppingPrefs, [e.target.name]: e.target.value });
+  // Handlers for input changes
+  const handleInputChange = (setter) => (e) => {
+    setter((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
-  const handleActivityChange = (e) => {
-    setActivityPrefs({ ...activityPrefs, [e.target.name]: e.target.value });
-  };
-
-  const handleNatureChange = (e) => {
-    setNaturePrefs({ ...naturePrefs, [e.target.name]: e.target.value });
+  const handleCostChange = (setter) => (e) => {
+    setter((prev) => ({
+      ...prev,
+      costPreference: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -57,97 +100,253 @@ const TravelProfile2 = () => {
       return;
     }
 
+    setLoading(true);
 
     try {
-        // Set the document ID to the user's UID to match Firestore rules
-        const docRef = await setDoc(doc(db, "userPreferences", user.uid), {
-            foodPreferences: foodPrefs,        // Save food preferences under the user's document
-            shoppingPreferences: shoppingPrefs,  // Save shopping preferences
-            activityPreferences: activityPrefs,  // Save activity preferences
-            naturePreferences: naturePrefs,      // Save nature preferences
-            timestamp: new Date(),               // Include a timestamp             
-        });
-  
-        console.log("Document written successfully");
-        navigate('/dashboard');
-      } catch (e) {
-        console.error("Error adding document: ", e);
-      }
-    
+      await setDoc(doc(db, "userPreferences", user.uid), {
+        foodPreferences: foodPrefs,
+        shoppingPreferences: shoppingPrefs,
+        activityPreferences: activityPrefs,
+        naturePreferences: naturePrefs,
+        timestamp: new Date(),
+      });
+
+      console.log("Document written successfully");
+      navigate('/dashboard');
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="travel-profile-container">
-      <h2 className="title">Travel Profile Preferences</h2>
-
+      <h2 className="title" style={{ color: '#0e395a' }}>Travel Categories</h2>
+      <p style={{ fontSize: '14px', color: '#656ca6', marginTop: '-15px', marginBottom: '20px' }}>
+      Let us know a little bit more about your travel preferences! We use this information to help create a detailed profile for you.
+    </p>
       <form onSubmit={handleSubmit} className="profile-form">
         {/* Restaurant Preferences */}
         <div className="profile-section">
-          <h3 className="category-title">
-            🍽 Restaurant Preferences
-            <span className="cost">{foodPrefs.costPreference}</span>
-          </h3>
-          <textarea
-            name="preferences"
-            value={foodPrefs.preferences}
-            onChange={handleRestaurantChange}
-            placeholder="Describe your restaurant preferences..."
-            className="input-box"
-            required
-          />
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6" sx={{ color: '#0e395a', fontWeight: 'bold' }}>
+              🍽 Restaurants & Dining
+            </Typography>
+            <IconButton onClick={() => toggleEditMode('food')}>
+              {editMode.food ? <SaveIcon /> : <EditIcon />}
+            </IconButton>
+          </Box>
+          {editMode.food ? (
+            <>
+              <TextField
+                name="preferences"
+                value={foodPrefs.preferences}
+                onChange={handleInputChange(setFoodPrefs)}
+                placeholder="Provide a brief description of your restaurant preferences..."
+                fullWidth
+                multiline
+                minRows={3}
+                sx={{ textAlign: 'left', color: '#0e395a', fontStyle: 'italic' }}
+              />
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <Select
+                  value={foodPrefs.costPreference}
+                  onChange={handleCostChange(setFoodPrefs)}
+                  sx={{ color: '#0e395a', height: '40px', fontSize: '0.9rem' }}
+                >
+                  <MenuItem value="$">$</MenuItem>
+                  <MenuItem value="$$">$$</MenuItem>
+                  <MenuItem value="$$$">$$$</MenuItem>
+                  <MenuItem value="$$$$">$$$$</MenuItem>
+                </Select>
+                <FormHelperText sx={{ color: '#0e395a' }}>Choose between $, $$, $$$, $$$$</FormHelperText>
+              </FormControl>
+            </>
+          ) : (
+            <>
+              <Typography variant="body1" sx={{ textAlign: 'left', color: '#0e395a'}}>
+                {foodPrefs.preferences || "Provide a brief description of your restaurant preferences..."}
+              </Typography>
+              <Typography variant="body2" sx={{ textAlign: 'left', color: '#0e395a' }}>
+                Cost Preference: {foodPrefs.costPreference}
+              </Typography>
+            </>
+          )}
         </div>
 
         {/* Shopping Preferences */}
         <div className="profile-section">
-          <h3 className="category-title">
-            🛍 Shopping Preferences
-            <span className="cost">{shoppingPrefs.costPreference}</span>
-          </h3>
-          <textarea
-            name="preferences"
-            value={shoppingPrefs.preferences}
-            onChange={handleShoppingChange}
-            placeholder="Describe your shopping preferences..."
-            className="input-box"
-            required
-          />
-
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6" sx={{ color: '#0e395a', fontWeight: 'bold' }}>
+              🛍 Shopping & Retail
+            </Typography>
+            <IconButton onClick={() => toggleEditMode('shopping')}>
+              {editMode.shopping ? <SaveIcon /> : <EditIcon />}
+            </IconButton>
+          </Box>
+          {editMode.shopping ? (
+            <>
+              <TextField
+                name="preferences"
+                value={shoppingPrefs.preferences}
+                onChange={handleInputChange(setShoppingPrefs)}
+                placeholder="Provide a brief description of your shopping preferences..."
+                fullWidth
+                multiline
+                minRows={3}
+                sx={{ textAlign: 'left', color: '#0e395a', fontStyle: 'italic' }}
+              />
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <Select
+                  value={shoppingPrefs.costPreference}
+                  onChange={handleCostChange(setShoppingPrefs)}
+                  sx={{ color: '#0e395a', height: '40px', fontSize: '0.9rem' }}
+                >
+                  <MenuItem value="$">$</MenuItem>
+                  <MenuItem value="$$">$$</MenuItem>
+                  <MenuItem value="$$$">$$$</MenuItem>
+                  <MenuItem value="$$$$">$$$$</MenuItem>
+                </Select>
+                <FormHelperText sx={{ color: '#0e395a' }}>Choose between $, $$, $$$, $$$$</FormHelperText>
+              </FormControl>
+            </>
+          ) : (
+            <>
+              <Typography variant="body1" sx={{ textAlign: 'left', color: '#0e395a'}}>
+                {shoppingPrefs.preferences || "Provide a brief description of your shopping preferences..."}
+              </Typography>
+              <Typography variant="body2" sx={{ textAlign: 'left', color: '#0e395a' }}>
+                Cost Preference: {shoppingPrefs.costPreference}
+              </Typography>
+            </>
+          )}
         </div>
 
         {/* Activities Preferences */}
         <div className="profile-section">
-          <h3 className="category-title">
-            🎭 Activities & Entertainment
-            <span className="cost">{activityPrefs.costPreference}</span>
-          </h3>
-          <textarea
-            name="preferences"
-            value={activityPrefs.preferences}
-            onChange={handleActivityChange}
-            placeholder="Describe your activity preferences..."
-            className="input-box"
-            required
-          />
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6" sx={{ color: '#0e395a', fontWeight: 'bold' }}>
+              🎭 Activities & Entertainment
+            </Typography>
+            <IconButton onClick={() => toggleEditMode('activity')}>
+              {editMode.activity ? <SaveIcon /> : <EditIcon />}
+            </IconButton>
+          </Box>
+          {editMode.activity ? (
+            <>
+              <TextField
+                name="preferences"
+                value={activityPrefs.preferences}
+                onChange={handleInputChange(setActivityPrefs)}
+                placeholder="Provide a brief description of your activity preferences..."
+                fullWidth
+                multiline
+                minRows={3}
+                sx={{ textAlign: 'left', color: '#0e395a', fontStyle: 'italic' }}
+              />
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <Select
+                  value={activityPrefs.costPreference}
+                  onChange={handleCostChange(setActivityPrefs)}
+                  sx={{ color: '#0e395a', height: '40px', fontSize: '0.9rem' }}
+                >
+                  <MenuItem value="$">$</MenuItem>
+                  <MenuItem value="$$">$$</MenuItem>
+                  <MenuItem value="$$$">$$$</MenuItem>
+                  <MenuItem value="$$$$">$$$$</MenuItem>
+                </Select>
+                <FormHelperText sx={{ color: '#0e395a' }}>Choose between $, $$, $$$, $$$$</FormHelperText>
+              </FormControl>
+            </>
+          ) : (
+            <>
+              <Typography variant="body1" sx={{ textAlign: 'left', color: '#0e395a'}}>
+                {activityPrefs.preferences || "Provide a brief description of your activity preferences..."}
+              </Typography>
+              <Typography variant="body2" sx={{ textAlign: 'left', color: '#0e395a' }}>
+                Cost Preference: {activityPrefs.costPreference}
+              </Typography>
+            </>
+          )}
         </div>
 
         {/* Nature Preferences */}
         <div className="profile-section">
-          <h3 className="category-title">
-            🌿 Nature Preferences
-          </h3>
-          <textarea
-            name="preferences"
-            value={naturePrefs.preferences}
-            onChange={handleNatureChange}
-            placeholder="Describe your nature preferences..."
-            className="input-box"
-            required
-          />
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6" sx={{ color: '#0e395a', fontWeight: 'bold' }}>
+              🌿 Nature & Sightseeing
+            </Typography>
+            <IconButton onClick={() => toggleEditMode('nature')}>
+              {editMode.nature ? <SaveIcon /> : <EditIcon />}
+            </IconButton>
+          </Box>
+          {editMode.nature ? (
+            <>
+              <TextField
+                name="preferences"
+                value={naturePrefs.preferences}
+                onChange={handleInputChange(setNaturePrefs)}
+                placeholder="Provide a brief description of your nature preferences..."
+                fullWidth
+                multiline
+                minRows={3}
+                sx={{ textAlign: 'left', color: '#0e395a', fontStyle: 'italic' }}
+              />
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <Select
+                  value={naturePrefs.costPreference}
+                  onChange={handleCostChange(setNaturePrefs)}
+                  sx={{ color: '#0e395a', height: '40px', fontSize: '0.9rem' }}
+                >
+                  <MenuItem value="$">$</MenuItem>
+                  <MenuItem value="$$">$$</MenuItem>
+                  <MenuItem value="$$$">$$$</MenuItem>
+                  <MenuItem value="$$$$">$$$$</MenuItem>
+                </Select>
+                <FormHelperText sx={{ color: '#0e395a' }}>Choose between $, $$, $$$, $$$$</FormHelperText>
+              </FormControl>
+            </>
+          ) : (
+            <>
+              <Typography variant="body1" sx={{ textAlign: 'left', color: '#0e395a'}}>
+                {naturePrefs.preferences || "Provide a brief description of your nature preferences..."}
+              </Typography>
+              <Typography variant="body2" sx={{ textAlign: 'left', color: '#0e395a' }}>
+                Cost Preference: {naturePrefs.costPreference}
+              </Typography>
+            </>
+          )}
         </div>
 
-        <button type="submit" className="submit-btn">
-          Finish
-        </button>
+        {/* Buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 4 }}>
+          <Button
+            variant="contained"
+            onClick={() => navigate('/TravelProfile')}
+            sx={{ 
+              backgroundColor: '#4dacd1', 
+              '&:hover': { backgroundColor: '#4293a9' }
+            }}
+          >
+            Back
+          </Button>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 4 }}>
+          <Button>
+          </Button>
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={loading || !allFieldsFilled}
+            sx={{ 
+              backgroundColor: '#4dacd1', 
+              '&:hover': { backgroundColor: '#4293a9' }
+            }}
+          >
+            {loading ? 'Saving...' : 'Finish'}
+          </Button>
+        </Box>
       </form>
     </div>
   );

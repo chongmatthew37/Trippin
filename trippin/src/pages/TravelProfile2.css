@@ -1,11 +1,13 @@
 /* TravelProfile2.css */
 
 /* Overall Container */
+@import url('https://fonts.googleapis.com/css2?family=Metropolis:wght@400;600;700&display=swap');
+
 .travel-profile-container {
     width: 100%;
     margin: 0 auto;
     padding: 40px 20px;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Metropolis', sans-serif;
     background-color: #fff3e3;
   }
   
@@ -29,7 +31,7 @@
   
   /* Card (Section) Styling */
   .profile-section {
-    background-color: #ECF4FD; /* Softer light blue background */
+    background-color: #d9f8fc; /* Softer light blue background */
     padding: 25px; /* More space inside */
     border-radius: 12px;
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.08); /* Subtle shadow */
