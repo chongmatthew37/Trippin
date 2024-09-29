@@ -1,6 +1,6 @@
 // src/components/TravelProfile.js
 import React, { useState } from 'react';
-import { Button, Card, CardContent, Grid, TextField } from '@mui/material';
+import { Button, Box, Card, CardContent, Grid, TextField } from '@mui/material';
 import { db } from "./firebase"
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc } from "firebase/firestore";
@@ -68,7 +68,7 @@ const TravelProfile = () => {
   return (
     <div>
       <h1 style={{ color: '#0e395a' }}>Create Your Travel Profile</h1>
-      <p style={{ fontSize: '14px', color: '#696969', marginTop: '-10px', marginBottom: '20px' }}>
+      <p style={{ fontSize: '14px', color: '#656ca6', marginTop: '-10px', marginBottom: '20px' }}>
       We use these travel preferences to help identify the best places for you to visit. Please select at least 3.
     </p>
       <Grid container spacing={2}>
@@ -94,15 +94,46 @@ const TravelProfile = () => {
         <TextField 
           value={newPreference} 
           onChange={(e) => setNewPreference(e.target.value)} 
-          placeholder="Add a new preference" 
+          placeholder="Add a new preference..." 
           fullWidth 
+          sx={{
+            '& .MuiInputBase-root': {
+              padding: '4px', // Reducing padding
+              fontSize: '14px', // Adjusting font size
+            },
+          }}
+          InputProps={{
+            style: {
+              height: '38px', // Adjust the height
+            }
+          }}
         />
-        <Button onClick={handleAddPreference} style={{ marginTop: '10px' }}>Add Preference</Button>
+        <Button onClick={handleAddPreference} style={{ marginTop: '10px' }}>+ Add Preference</Button>
       </div>
 
-      <Button onClick={handleSubmit} style={{ marginTop: '20px' }} disabled={selectedPreferences.length < 3}>
-        Submit Preferences
-      </Button>
+      {/* Center the submit button */}
+      <Box 
+        sx={{
+          display: 'flex', 
+          justifyContent: 'center', 
+          marginTop: '10px',  // Space above the button
+          paddingBottom: '20px' // Padding below to avoid bottom touching
+        }}
+      >
+        <Button 
+          variant="contained" 
+          onClick={handleSubmit} 
+          disabled={selectedPreferences.length < 3} 
+          sx={{ 
+            backgroundColor: '#4dacd1', 
+            '&:hover': { backgroundColor: '#4293a9' }, // Darker shade on hover
+            width: '200px',  // Fix width to make it look more uniform
+            padding: '10px'  // Extra padding for better spacing
+          }}
+        >
+          Submit Preferences
+        </Button>
+      </Box>
     </div>
   );
 }
