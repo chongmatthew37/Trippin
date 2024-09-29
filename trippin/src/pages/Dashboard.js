@@ -346,7 +346,7 @@ export default function Dashboard() {
                       '&:hover': { backgroundColor: '#78c8d2' },
                     }}
                     disabled={!allInviteesCompleted(trip.id)}
-                    onClick={() => navigate('/itinerary')}
+                    onClick={() => navigate(`/itinerary/${trip.id}`)}
                   >
                     Let's Trip!
                   </Button>

@@ -1,34 +1,51 @@
-import React from 'react';
-import { Typography, Card, CardContent, Box, Container, Button } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Typography, CircularProgress, Box, Card, CardContent, Button, Container } from '@mui/material';
 import Slider from 'react-slick'; // Carousel library
-import { useNavigate } from 'react-router-dom';
+import GeminiAPI from './services/GeminiAPI'; // Import the API service for Gemini AI
 
-// Sample itinerary data
-const itineraryData = [
-  {
-    date: '27th September',
-    activities: [
-      { type: 'Activity', name: 'Wander around Santa Gertrudis', time: '11:00 - 13:00', location: 'Santa Gertrudis de Fruiteria, Spain', cost: '£100' },
-      { type: 'Food', name: 'La Granja Ibiza', time: '13:00 - 15:00', location: 'Carretera de Forada, Spain', cost: '£110' },
-    ],
-  },
-  {
-    date: '28th September',
-    activities: [
-      { type: 'Activity', name: 'Visit Cala Mastella', time: '11:00 - 14:00', location: 'Cala Mastella, Spain', cost: '£86' },
-    ],
-  },
-  // More days...
-];
+const ItineraryPage = () => {
+  const { tripId } = useParams(); // Get the tripId from the URL
+  const [itinerary, setItinerary] = useState(null); // State to store the itinerary
+  const [loading, setLoading] = useState(true); // Loading state
+  const navigate = useNavigate(); // Navigation for buttons
 
-const Itinerary = () => {
-  const navigate = useNavigate();
+  // Fetch the itinerary using Gemini AI
+  useEffect(() => {
+    const fetchItinerary = async () => {
+      try {
+        const response = await GeminiAPI.generateItinerary(tripId); // Fetch itinerary from the API
+        setItinerary(response); // Save the fetched itinerary
+        setLoading(false); // Set loading to false
+      } catch (error) {
+        console.error('Error fetching itinerary:', error);
+        setLoading(false);
+      }
+    };
+    fetchItinerary();
+  }, [tripId]);
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!itinerary || !itinerary.days) {
+    return (
+      <Typography variant="h6" color="error" sx={{ textAlign: 'center', marginTop: 4 }}>
+        Unable to load itinerary.
+      </Typography>
+    );
+  }
 
   const settings = {
     dots: true,
     infinite: false,
     speed: 500,
-    slidesToShow: itineraryData.length > 5 ? 3 : itineraryData.length, // Show 3 if more than 5 days
+    slidesToShow: itinerary.days.length > 5 ? 3 : itinerary.days.length, // Show 3 if more than 5 days
     slidesToScroll: 1,
     responsive: [
       {
@@ -52,20 +69,20 @@ const Itinerary = () => {
         variant="h4"
         sx={{
           textAlign: 'center',
-          marginTop: 2, // Reduced space from top
+          marginTop: 2,
           marginBottom: 3,
           fontFamily: 'Metropolis, sans-serif',
           color: '#0e395a',
-          fontWeight: 'bold', // Make it bold
+          fontWeight: 'bold',
         }}
       >
         Your Itinerary
       </Typography>
-      
+
       {/* Carousel or List of Days */}
-      {itineraryData.length > 5 ? (
+      {itinerary.days.length > 5 ? (
         <Slider {...settings}>
-          {itineraryData.map((day, index) => (
+          {itinerary.days.map((day, index) => (
             <Box key={index} sx={{ padding: 2 }}>
               <Typography
                 variant="h6"
@@ -124,7 +141,7 @@ const Itinerary = () => {
         </Slider>
       ) : (
         <Box sx={{ display: 'flex', justifyContent: 'space-between', overflow: 'auto' }}>
-          {itineraryData.map((day, index) => (
+          {itinerary.days.map((day, index) => (
             <Box key={index} sx={{ minWidth: '200px', padding: 2 }}>
               <Typography
                 variant="h6"
@@ -182,8 +199,8 @@ const Itinerary = () => {
           ))}
         </Box>
       )}
-      
-      {/* Existing Back To Dashboard Button */}
+
+      {/* Back to Dashboard Button */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginY: 4 }}>
         <Button
           variant="contained"
@@ -201,4 +218,4 @@ const Itinerary = () => {
   );
 };
 
-export default Itinerary;
+export default ItineraryPage;
