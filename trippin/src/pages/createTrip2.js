@@ -183,7 +183,7 @@ const CreateTrip2 = () => {
           db,
           'trips',
           tripId,
-          'userPreferences',
+          'userTravelPreferences',
           user.email
         );
 
