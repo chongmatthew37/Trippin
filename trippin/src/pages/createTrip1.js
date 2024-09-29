@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Box, Button } from '@mui/material';
 import './createTrip1.css';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'; // Import Firestore methods
 import { db, auth } from './firebase'; // Import Firestore and Auth instances from Firebase
@@ -17,6 +18,9 @@ function CreateTrip() {
   const [startDate, setStartDate] = useState(null); // Start date state
   const [endDate, setEndDate] = useState(null); // End date state
   const [address, setAddress] = useState(''); // New state for address
+  const [loading, setLoading] = useState(false);
+  const [dateError, setDateError] = useState(''); // Error message for date validation
+
   const navigate = useNavigate();
 
   // Handle adding a new email to the invite list
@@ -60,6 +64,7 @@ function CreateTrip() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     // Firestore logic: store the trip object
     try {
@@ -83,8 +88,28 @@ function CreateTrip() {
       navigate('/createTrip2', { state: { tripId, address } });
     } catch (error) {
       console.error('Error adding trip: ', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Validate form completeness
+  const isFormComplete = () => {
+    return tripName && tripArea && address && startDate && endDate && inviteEmails.length > 0 && !dateError;
+  };
+
+  // Validate if the End Date is on or after the Start Date
+  useEffect(() => {
+    if (startDate && endDate) {
+      if (endDate < startDate) {
+        setDateError('End Date cannot be before Start Date');
+      } else {
+        setDateError(''); // Clear the error if valid
+      }
+    } else {
+      setDateError(''); // No error if dates aren't both selected
+    }
+  }, [startDate, endDate]);
 
   return (
     <div className="create-trip-container">
@@ -103,7 +128,6 @@ function CreateTrip() {
             required
           />
         </div>
-        
 
         {/* Trip Area */}
         <div className="form-group">
@@ -141,6 +165,7 @@ function CreateTrip() {
             onChange={(date) => setStartDate(date)}
             className="form-control"
             placeholderText="Select a start date"
+            required
           />
         </div>
 
@@ -152,8 +177,12 @@ function CreateTrip() {
             onChange={(date) => setEndDate(date)}
             className="form-control"
             placeholderText="Select an end date"
+            required
           />
         </div>
+
+        {/* Display date validation error */}
+        {dateError && <p className="error-message">{dateError}</p>}
 
         {/* Invite Emails */}
         <div className="form-group">
@@ -169,8 +198,8 @@ function CreateTrip() {
             <button type="button" className="add-email-btn" onClick={handleAddEmail}>
               Add
             </button>
-          </div>         
-          
+          </div>
+
           {/* Display error message if email is not valid */}
           {errorMessage && <p className="error-message">{errorMessage}</p>}
 
@@ -187,10 +216,35 @@ function CreateTrip() {
           </div>
         </div>
 
-        {/* Submit Button */}
-        <div className="form-group">
-          <button type="submit" className="submit-btn">Create Trip</button>
-        </div>
+        <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            width: '100%', // Ensure full width
+            paddingX: '0px', // Optional: add horizontal padding
+            marginY: 4, // Add vertical margin
+          }}>
+          <Button
+            variant="contained"
+            onClick={() => navigate('/Dashboard')}
+            sx={{ 
+              backgroundColor: '#4dacd1', 
+              '&:hover': { backgroundColor: '#4293a9' }
+            }}
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            type="submit"
+            disabled={!isFormComplete() || loading}
+            sx={{ 
+              backgroundColor: '#4dacd1', 
+              '&:hover': { backgroundColor: '#4293a9' }
+            }}
+          >
+            {loading ? 'Saving...' : 'Next'}
+          </Button>
+        </Box>
       </form>
     </div>
   );

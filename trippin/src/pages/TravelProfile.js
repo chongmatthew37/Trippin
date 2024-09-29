@@ -52,7 +52,7 @@ const TravelProfile = () => {
 
     try {
       // Set the document ID to the user's UID to match Firestore rules
-      const docRef = await setDoc(doc(db, "userPreferences", user.uid), {
+      await setDoc(doc(db, "userPreferences", user.uid), {
         preferences: selectedPreferences,
         timestamp: new Date(),
         userId: user.uid  // Include user ID for tracking
