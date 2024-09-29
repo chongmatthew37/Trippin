@@ -95,7 +95,7 @@ export default function Dashboard() {
           .inviteEmails.map((email) => email.toLowerCase());
         for (const email of inviteEmails) {
           const preferencesDoc = await getDoc(
-            doc(db, 'trips', tripId, 'userPreferences', email)
+            doc(db, 'trips', tripId, 'userTravelPreferences', email)
           );
           inviteeFormStatus[email] =
             preferencesDoc.exists() && preferencesDoc.data()?.formComplete
@@ -112,7 +112,7 @@ export default function Dashboard() {
   const fetchSelfStatus = async (tripId, email) => {
     try {
       const preferencesDoc = await getDoc(
-        doc(db, 'trips', tripId, 'userPreferences', email)
+        doc(db, 'trips', tripId, 'userTravelPreferences', email)
       );
       return preferencesDoc.exists() && preferencesDoc.data()?.formComplete
         ? 'Complete'
