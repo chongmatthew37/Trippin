@@ -190,7 +190,7 @@ const CreateTrip2 = () => {
         await setDoc(preferencesDocRef, preferences, { merge: true });
 
         setLoading(false);
-        alert('Preferences saved successfully!');
+        //alert('Preferences saved successfully!');
 
         navigate('/dashboard');
       } else {
@@ -199,7 +199,7 @@ const CreateTrip2 = () => {
       }
     } catch (error) {
       console.error('Error saving preferences:', error);
-      alert('There was an error saving your preferences. Please try again.');
+      //alert('There was an error saving your preferences. Please try again.');
       setLoading(false);
     }
   };
