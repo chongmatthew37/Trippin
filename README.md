@@ -1,1 +1,1 @@
-This is the readme for Trippin - A group trip planner
+Group Trip Planner powered by ML and AI
