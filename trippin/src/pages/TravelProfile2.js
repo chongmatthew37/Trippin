@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from './firebase'; // Import your Firebase configuration
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import './TravelProfile2.css'; // Import the CSS file here
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth";
@@ -103,7 +103,7 @@ const TravelProfile2 = () => {
     setLoading(true);
 
     try {
-      await setDoc(doc(db, "userPreferences", user.uid), {
+      await updateDoc(doc(db, "userPreferences", user.uid), {
         foodPreferences: foodPrefs,
         shoppingPreferences: shoppingPrefs,
         activityPreferences: activityPrefs,
